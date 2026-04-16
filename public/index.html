@@ -1,869 +1,2646 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PlaceMe — Placement System</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
-<style>
-/* ═══════════════════════════════ TOKENS ═══════════════════════════════ */
-:root{
-  --bg:#06060f;
-  --sb-bg:rgba(8,8,20,0.95);
-  --surface:rgba(255,255,255,0.04);
-  --surface2:rgba(255,255,255,0.07);
-  --border:rgba(255,255,255,0.08);
-  --border2:rgba(255,255,255,0.15);
-  --v:#8b5cf6; --vd:#6d28d9; --vg:rgba(139,92,246,0.35);
-  --c:#22d3ee; --cd:#06b6d4; --cg:rgba(34,211,238,0.28);
-  --g:#10b981; --gg:rgba(16,185,129,0.28);
-  --a:#f59e0b; --ag:rgba(245,158,11,0.28);
-  --r:#f43f5e; --p:#ec4899;
-  --t:#f1f5f9; --t2:#94a3b8; --t3:#475569;
-  --rad:18px; --rad-s:11px;
-  --tr:0.22s cubic-bezier(.4,0,.2,1);
-}
-/* ═══════════════════════════════ RESET ════════════════════════════════ */
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,sans-serif;}
-html,body{height:100%;background:var(--bg);color:var(--t);overflow:hidden;}
-::-webkit-scrollbar{width:4px;height:4px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:rgba(139,92,246,.3);border-radius:99px;}
-::-webkit-scrollbar-thumb:hover{background:rgba(139,92,246,.5);}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PlaceMe — Placement System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    /* ═══════════════════════════════ TOKENS ═══════════════════════════════ */
+    :root {
+      --bg: #06060f;
+      --sb-bg: rgba(8, 8, 20, 0.95);
+      --surface: rgba(255, 255, 255, 0.04);
+      --surface2: rgba(255, 255, 255, 0.07);
+      --border: rgba(255, 255, 255, 0.08);
+      --border2: rgba(255, 255, 255, 0.15);
+      --v: #8b5cf6;
+      --vd: #6d28d9;
+      --vg: rgba(139, 92, 246, 0.35);
+      --c: #22d3ee;
+      --cd: #06b6d4;
+      --cg: rgba(34, 211, 238, 0.28);
+      --g: #10b981;
+      --gg: rgba(16, 185, 129, 0.28);
+      --a: #f59e0b;
+      --ag: rgba(245, 158, 11, 0.28);
+      --r: #f43f5e;
+      --p: #ec4899;
+      --t: #f1f5f9;
+      --t2: #94a3b8;
+      --t3: #475569;
+      --rad: 18px;
+      --rad-s: 11px;
+      --tr: 0.22s cubic-bezier(.4, 0, .2, 1);
+    }
 
-/* ═══════════════════════════════ BACKGROUND ═══════════════════════════ */
-.bg-grid{
-  position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:radial-gradient(rgba(255,255,255,0.035) 1px,transparent 1px);
-  background-size:28px 28px;
-}
-.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(90px);animation:orbFloat 12s ease-in-out infinite;}
-.orb1{width:700px;height:700px;background:radial-gradient(circle,rgba(109,40,217,0.18),transparent 70%);top:-280px;left:-200px;}
-.orb2{width:500px;height:500px;background:radial-gradient(circle,rgba(6,182,212,0.12),transparent 70%);bottom:-150px;right:-100px;animation-delay:-6s;}
-.orb3{width:350px;height:350px;background:radial-gradient(circle,rgba(236,72,153,0.08),transparent 70%);top:40%;left:40%;animation-delay:-3s;}
-@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1);}40%{transform:translate(25px,-35px) scale(1.04);}70%{transform:translate(-15px,20px) scale(0.97);}}
+    /* ═══════════════════════════════ RESET ════════════════════════════════ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, sans-serif;
+    }
 
-/* ═══════════════════════════════ LAYOUT ═══════════════════════════════ */
-.layout{display:flex;height:100vh;position:relative;z-index:1;}
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--t);
+      overflow: hidden;
+    }
 
-/* ═══════════════════════════════ SIDEBAR ══════════════════════════════ */
-.sidebar{
-  width:258px;min-width:258px;display:flex;flex-direction:column;
-  background:var(--sb-bg);border-right:1px solid var(--border);
-  transition:all var(--tr);overflow:hidden;position:relative;
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-}
-.sidebar.collapsed{width:70px;min-width:70px;}
-.sidebar.collapsed .nav-label,.sidebar.collapsed .logo-text-wrap,.sidebar.collapsed .nav-sec,.sidebar.collapsed .sb-user-info{display:none;}
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
 
-/* Logo */
-.logo{padding:22px 18px 18px;display:flex;align-items:center;gap:13px;border-bottom:1px solid var(--border);flex-shrink:0;}
-.logo-icon{
-  width:40px;height:40px;border-radius:12px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--v),var(--cd));
-  display:flex;align-items:center;justify-content:center;
-  font-size:17px;font-weight:900;color:#fff;
-  box-shadow:0 0 24px var(--vg);
-  position:relative;
-}
-.logo-icon::after{content:'';position:absolute;inset:-1px;border-radius:13px;background:linear-gradient(135deg,rgba(255,255,255,0.25),transparent);pointer-events:none;}
-.logo-text-wrap{overflow:hidden;}
-.logo-name{font-size:17px;font-weight:800;background:linear-gradient(135deg,#c4b5fd,var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;}
-.logo-sub{font-size:9.5px;letter-spacing:1.2px;color:var(--t3);margin-top:1px;text-transform:uppercase;}
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
 
-/* Nav */
-.nav{flex:1;padding:14px 10px;overflow-y:auto;overflow-x:hidden;}
-.nav-sec{font-size:9px;font-weight:700;letter-spacing:1.4px;color:var(--t3);padding:10px 10px 6px;text-transform:uppercase;white-space:nowrap;}
-.nav-item{
-  display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:12px;
-  cursor:pointer;color:var(--t3);transition:all var(--tr);margin-bottom:2px;
-  position:relative;white-space:nowrap;
-}
-.nav-item:hover{color:var(--t2);background:rgba(255,255,255,0.04);}
-.nav-item.active{color:#fff;background:linear-gradient(90deg,rgba(139,92,246,0.22),rgba(139,92,246,0.06));}
-.nav-item.active::before{content:'';position:absolute;left:0;top:18%;height:64%;width:3px;background:linear-gradient(180deg,var(--v),var(--c));border-radius:0 3px 3px 0;}
-.nav-ico{
-  width:33px;height:33px;border-radius:9px;display:flex;align-items:center;justify-content:center;
-  font-size:13.5px;flex-shrink:0;background:rgba(255,255,255,0.05);transition:all var(--tr);
-}
-.nav-item:hover .nav-ico{background:rgba(139,92,246,0.12);color:#a78bfa;}
-.nav-item.active .nav-ico{background:rgba(139,92,246,0.22);color:#c4b5fd;box-shadow:0 0 16px rgba(139,92,246,0.3);}
-.nav-label{font-size:13px;font-weight:500;}
+    ::-webkit-scrollbar-thumb {
+      background: rgba(139, 92, 246, .3);
+      border-radius: 99px;
+    }
 
-/* Sidebar user */
-.sb-user{padding:12px 10px 16px;border-top:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:11px;cursor:pointer;border-radius:12px;transition:all var(--tr);}
-.sb-user:hover{background:var(--surface);}
-.sb-av{width:33px;height:33px;border-radius:50%;background:linear-gradient(135deg,var(--v),var(--c));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}
-.sb-user-info{overflow:hidden;}
-.sb-uname{font-size:12.5px;font-weight:600;color:var(--t);}
-.sb-urole{font-size:10.5px;color:var(--t3);}
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(139, 92, 246, .5);
+    }
 
-/* ═══════════════════════════════ MAIN ═════════════════════════════════ */
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+    /* ═══════════════════════════════ BACKGROUND ═══════════════════════════ */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
 
-/* Topbar */
-.topbar{
-  height:65px;display:flex;align-items:center;padding:0 26px;gap:14px;flex-shrink:0;
-  background:rgba(6,6,15,0.7);border-bottom:1px solid var(--border);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-}
-.topbar-left{flex:1;display:flex;align-items:center;gap:12px;}
-.menu-toggle{
-  width:34px;height:34px;border:1px solid var(--border);background:var(--surface);
-  border-radius:9px;display:flex;align-items:center;justify-content:center;
-  cursor:pointer;color:var(--t2);transition:all var(--tr);font-size:13px;flex-shrink:0;
-}
-.menu-toggle:hover{background:var(--surface2);border-color:var(--border2);color:var(--t);}
-.pg-title{font-size:18px;font-weight:700;color:var(--t);}
-.pg-subtitle{font-size:12px;color:var(--t3);margin-left:8px;}
-.search-wrap{position:relative;}
-.search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:12px;pointer-events:none;}
-.tb-search{
-  background:var(--surface);border:1px solid var(--border);color:var(--t);
-  padding:9px 14px 9px 34px;border-radius:11px;width:210px;font-size:13px;
-  outline:none;transition:all var(--tr);
-}
-.tb-search:focus{border-color:var(--v);width:250px;box-shadow:0 0 0 3px var(--vg);}
-.tb-search::placeholder{color:var(--t3);}
-.tb-btn{
-  display:flex;align-items:center;gap:8px;padding:9px 18px;
-  background:linear-gradient(135deg,var(--v),var(--vd));
-  border:none;color:#fff;border-radius:11px;font-size:13px;font-weight:600;
-  cursor:pointer;transition:all var(--tr);white-space:nowrap;position:relative;overflow:hidden;
-}
-.tb-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.18) 50%,transparent 60%);transform:translateX(-100%);transition:transform 0.5s;}
-.tb-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px var(--vg);}
-.tb-btn:hover::after{transform:translateX(100%);}
-.tb-av{width:35px;height:35px;border-radius:50%;background:linear-gradient(135deg,var(--v),var(--c));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 0 0 2px var(--border2);}
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(90px);
+      animation: orbFloat 12s ease-in-out infinite;
+    }
 
-/* Content */
-.content{flex:1;overflow-y:auto;padding:24px 22px;}
-.page{display:none;animation:fadeUp .35s var(--tr) both;}
-.page.active{display:block;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+    .orb1 {
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(109, 40, 217, 0.18), transparent 70%);
+      top: -280px;
+      left: -200px;
+    }
 
-/* ═══════════════════════════════ DASHBOARD ═══════════════════════════ */
+    .orb2 {
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.12), transparent 70%);
+      bottom: -150px;
+      right: -100px;
+      animation-delay: -6s;
+    }
 
-/* Welcome Banner */
-.welcome{
-  animation:fadeUp .5s var(--tr) both;
-}
-  background:linear-gradient(135deg,rgba(109,40,217,0.18) 0%,rgba(6,182,212,0.08) 50%,transparent 100%);
-  border:1px solid rgba(139,92,246,0.2);border-radius:var(--rad);padding:26px 30px;
-  margin-bottom:24px;position:relative;overflow:hidden;
-}
-.welcome::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.2),transparent 70%);pointer-events:none;}
-.welcome::after{content:'';position:absolute;bottom:-40px;right:30%;width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(34,211,238,0.1),transparent 70%);pointer-events:none;}
-.wb-eyebrow{font-size:12px;font-weight:500;color:#a78bfa;letter-spacing:.5px;margin-bottom:6px;}
-.wb-title{font-size:28px;font-weight:900;line-height:1.2;margin-bottom:8px;letter-spacing:-.5px;}
-.wb-title span{background:linear-gradient(90deg,#c4b5fd,var(--c),#a78bfa);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:bannerShine 4s linear infinite;}
-.wb-desc{font-size:13px;color:var(--t2);max-width:460px;line-height:1.6;}
-.wb-chips{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
-.wb-chip{display:flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:99px;font-size:11.5px;color:var(--t2);}
-.wb-chip i{font-size:10px;color:#a78bfa;}
+    .orb3 {
+      width: 350px;
+      height: 350px;
+      background: radial-gradient(circle, rgba(236, 72, 153, 0.08), transparent 70%);
+      top: 40%;
+      left: 40%;
+      animation-delay: -3s;
+    }
 
-/* Stat Cards */
-.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;}
-.sc{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);
-  padding:22px;position:relative;overflow:hidden;cursor:default;
-  transition:all var(--tr);
-}
-.sc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.04) 0%,transparent 55%);pointer-events:none;}
-.sc:hover{transform:translateY(-5px);border-color:var(--border2);box-shadow:0 20px 60px rgba(0,0,0,0.5);}
-.sc-glow{position:absolute;width:180px;height:180px;border-radius:50%;top:-60px;right:-60px;filter:blur(55px);opacity:0.18;transition:opacity var(--tr);}
-.sc:hover .sc-glow{opacity:0.32;}
-.sc.sv .sc-glow{background:var(--v);}
-.sc.sc2 .sc-glow{background:var(--c);}
-.sc.sa .sc-glow{background:var(--a);}
-.sc.sg .sc-glow{background:var(--g);}
-.sc-ico{
-  width:46px;height:46px;border-radius:13px;display:flex;align-items:center;
-  justify-content:center;font-size:17px;position:relative;z-index:1;
-}
-.sc.sv .sc-ico{background:rgba(139,92,246,0.2);color:#c4b5fd;box-shadow:0 0 22px rgba(139,92,246,0.3);}
-.sc.sc2 .sc-ico{background:rgba(34,211,238,0.15);color:var(--c);box-shadow:0 0 22px rgba(34,211,238,0.25);}
-.sc.sa .sc-ico{background:rgba(245,158,11,0.15);color:var(--a);box-shadow:0 0 22px rgba(245,158,11,0.25);}
-.sc.sg .sc-ico{background:rgba(16,185,129,0.15);color:var(--g);box-shadow:0 0 22px rgba(16,185,129,0.25);}
-.sc-val{font-size:46px;font-weight:900;letter-spacing:-3px;line-height:1;margin:16px 0 5px;background:linear-gradient(160deg,#ffffff 0%,#cbd5e1 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;position:relative;z-index:1;}
-.sc-lbl{font-size:13px;color:var(--t2);font-weight:500;position:relative;z-index:1;}
-.sc-sub{font-size:11px;color:var(--t3);margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:5px;position:relative;z-index:1;}
-.sc-sub i{font-size:9px;}
-.sc.sg .sc-sub i,.sc.sg .sc-sub span{color:var(--g);}
-.sc.sv .sc-sub i,.sc.sv .sc-sub span{color:#a78bfa;}
+    @keyframes orbFloat {
 
-/* Charts */
-.chart-row{display:grid;grid-template-columns:1fr 300px;gap:16px;margin-bottom:22px;}
-.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);padding:22px;}
-.cc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-.cc-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:8px;}
-.cc-title i{width:28px;height:28px;border-radius:8px;background:rgba(139,92,246,0.15);color:#a78bfa;display:flex;align-items:center;justify-content:center;font-size:12px;}
-.cc-pill{font-size:10px;font-weight:600;padding:3px 10px;border-radius:99px;background:rgba(16,185,129,0.12);color:var(--g);}
-.ring-center{position:relative;display:flex;align-items:center;justify-content:center;}
-.ring-label{position:absolute;text-align:center;}
-.ring-num{font-size:28px;font-weight:800;background:linear-gradient(135deg,#f8fafc,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.ring-sub{font-size:10px;color:var(--t3);}
+      0%,
+      100% {
+        transform: translate(0, 0) scale(1);
+      }
 
-/* ═══════════════════════════════ TABLE CARD ═══════════════════════════ */
-.tcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);overflow:hidden;}
-.tcard-head{padding:16px 22px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
-.tcard-head h3{font-size:14px;font-weight:700;}
-table{width:100%;border-collapse:collapse;}
-th{padding:11px 18px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.9px;color:var(--t3);text-transform:uppercase;background:rgba(255,255,255,0.02);border-bottom:1px solid var(--border);}
-td{padding:13px 18px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);}
-tbody tr{transition:all var(--tr);}
-tbody tr:hover td{background:rgba(139,92,246,0.07);}
-tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--v);}
-tbody tr:last-child td{border-bottom:none;}
-.cell-name{font-weight:600;color:var(--t);}
-.cell-muted{color:var(--t3);font-size:11.5px;margin-top:2px;}
-.av-wrap{display:flex;align-items:center;gap:10px;}
-.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;flex-shrink:0;color:#fff;}
-.act{display:flex;gap:5px;}
-.ib{width:30px;height:30px;border:none;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11.5px;transition:all var(--tr);}
-.ib-e{background:rgba(139,92,246,0.12);color:#a78bfa;}
-.ib-e:hover{background:rgba(139,92,246,0.3);transform:scale(1.08);}
-.ib-d{background:rgba(244,63,94,0.1);color:var(--r);}
-.ib-d:hover{background:rgba(244,63,94,0.28);transform:scale(1.08);}
-.ib-v{background:rgba(34,211,238,0.1);color:var(--c);}
-.ib-v:hover{background:rgba(34,211,238,0.28);transform:scale(1.08);}
+      40% {
+        transform: translate(25px, -35px) scale(1.04);
+      }
 
-/* CGPA bar */
-.cgpa-row{display:flex;align-items:center;gap:8px;font-size:12px;}
-.cgpa-track{flex:1;height:4px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden;min-width:60px;}
-.cgpa-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--v),var(--c));transition:width .7s cubic-bezier(.4,0,.2,1);}
-.cgpa-num{font-weight:700;min-width:26px;color:var(--t);}
+      70% {
+        transform: translate(-15px, 20px) scale(0.97);
+      }
+    }
 
-/* ═══════════════════════════════ FILTERS ══════════════════════════════ */
-.filters{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
-.fi{background:var(--surface);border:1px solid var(--border);color:var(--t);padding:9px 13px;border-radius:10px;font-size:13px;outline:none;cursor:pointer;transition:all var(--tr);}
-.fi:focus{border-color:var(--v);box-shadow:0 0 0 3px var(--vg);}
-.fi::placeholder{color:var(--t3);}
-.fi-stretch{flex:1;min-width:180px;}
-.tabs{display:flex;gap:3px;background:rgba(255,255,255,0.04);padding:4px;border-radius:11px;border:1px solid var(--border);}
-.tab{padding:6px 15px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;background:transparent;color:var(--t3);transition:all var(--tr);}
-.tab.on{background:linear-gradient(135deg,var(--v),var(--vd));color:#fff;box-shadow:0 4px 14px var(--vg);}
-.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
-.sec-ttl{font-size:15px;font-weight:700;}
+    /* ═══════════════════════════════ LAYOUT ═══════════════════════════════ */
+    .layout {
+      display: flex;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
 
-/* ═══════════════════════════════ BADGES ═══════════════════════════════ */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;}
-.badge i{font-size:6px;}
-.bg{background:rgba(16,185,129,0.12);color:#34d399;box-shadow:0 0 10px rgba(16,185,129,0.2);}
-.bb{background:rgba(59,130,246,0.12);color:#60a5fa;}
-.bc{background:rgba(34,211,238,0.12);color:var(--c);box-shadow:0 0 10px rgba(34,211,238,0.18);}
-.ba{background:rgba(245,158,11,0.12);color:#fbbf24;box-shadow:0 0 10px rgba(245,158,11,0.18);}
-.bv{background:rgba(139,92,246,0.15);color:#c4b5fd;}
-.br{background:rgba(244,63,94,0.1);color:#fb7185;}
-.bk{background:rgba(100,116,139,0.12);color:var(--t3);}
+    /* ═══════════════════════════════ SIDEBAR ══════════════════════════════ */
+    .sidebar {
+      width: 258px;
+      min-width: 258px;
+      display: flex;
+      flex-direction: column;
+      background: var(--sb-bg);
+      border-right: 1px solid var(--border);
+      transition: all var(--tr);
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
 
-/* ═══════════════════════════════ COMPANY CARDS ════════════════════════ */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
-.co-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);
-  overflow:hidden;transition:all var(--tr);cursor:default;
-}
-.co-card:hover{transform:translateY(-5px);border-color:var(--border2);box-shadow:0 20px 60px rgba(0,0,0,.5);}
-.co-banner{height:68px;position:relative;overflow:hidden;display:flex;align-items:flex-end;padding:12px 18px;}
-.co-banner::after{content:'';position:absolute;inset:0;background:rgba(0,0,0,.25);}
-.co-ava{
-  width:50px;height:50px;border-radius:14px;display:flex;align-items:center;justify-content:center;
-  font-size:20px;font-weight:800;color:#fff;flex-shrink:0;
-  border:2px solid rgba(255,255,255,0.2);position:relative;z-index:1;
-  box-shadow:0 4px 16px rgba(0,0,0,.4);
-}
-.co-body{padding:14px 18px 18px;}
-.co-name{font-size:15px;font-weight:700;margin-bottom:2px;}
-.co-ind{font-size:12px;color:var(--t3);}
-.co-desc{font-size:12px;color:var(--t2);line-height:1.55;margin:10px 0;}
-.co-site{font-size:11.5px;color:var(--c);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:12px;}
-.co-stats{display:flex;gap:0;border-top:1px solid var(--border);padding-top:12px;}
-.co-stat{flex:1;text-align:center;padding:0 8px;}
-.co-stat:not(:last-child){border-right:1px solid var(--border);}
-.co-stat-n{font-size:20px;font-weight:800;background:linear-gradient(135deg,#f8fafc,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.co-stat-l{font-size:10px;color:var(--t3);margin-top:2px;}
-.co-acts{display:flex;gap:8px;margin-top:12px;}
-.co-acts button{flex:1;padding:7px;border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:12px;font-weight:600;background:var(--surface);transition:all var(--tr);}
-.co-acts .co-e{color:#a78bfa;}
-.co-acts .co-e:hover{background:rgba(139,92,246,0.2);border-color:rgba(139,92,246,.3);}
-.co-acts .co-d{color:var(--r);}
-.co-acts .co-d:hover{background:rgba(244,63,94,0.15);border-color:rgba(244,63,94,.25);}
+    .sidebar.collapsed {
+      width: 70px;
+      min-width: 70px;
+    }
 
-/* ═══════════════════════════════ DRIVE CARDS ══════════════════════════ */
-.drive-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:var(--rad);
-  overflow:hidden;transition:all var(--tr);cursor:default;display:flex;flex-direction:column;
-}
-.drive-card:hover{transform:translateY(-5px);border-color:var(--border2);box-shadow:0 20px 60px rgba(0,0,0,.5);}
-.dc-head{height:78px;position:relative;overflow:hidden;padding:16px 18px;display:flex;align-items:flex-end;justify-content:space-between;}
-.dc-head::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,0.4) 100%);}
-.dc-hc1,.dc-hc2{position:absolute;border-radius:50%;background:rgba(255,255,255,0.12);}
-.dc-hc1{width:100px;height:100px;top:-30px;right:-20px;}
-.dc-hc2{width:60px;height:60px;top:10px;right:60px;background:rgba(255,255,255,0.06);}
-.drive-card.upcoming .dc-head{background:linear-gradient(135deg,#3b1d8a,#1e3a5f);}
-.drive-card.ongoing .dc-head{background:linear-gradient(135deg,#7c2d12,#14532d);}
-.drive-card.completed .dc-head{background:linear-gradient(135deg,#1e293b,#0f172a);}
-.dc-co{font-size:11.5px;font-weight:700;color:rgba(255,255,255,0.8);letter-spacing:.3px;position:relative;z-index:1;}
-.dc-body{padding:18px;flex:1;display:flex;flex-direction:column;}
-.dc-title{font-size:15px;font-weight:700;margin-bottom:3px;}
-.dc-role{font-size:12px;color:var(--t3);margin-bottom:12px;}
-.dc-pkg{font-size:24px;font-weight:800;color:var(--g);line-height:1;margin-bottom:12px;}
-.dc-pkg span{font-size:12px;color:var(--t3);font-weight:400;}
-.dc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
-.dc-chip{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--t3);background:rgba(255,255,255,0.04);border:1px solid var(--border);padding:3px 9px;border-radius:99px;}
-.dc-chip i{color:#a78bfa;font-size:9px;}
-.dc-footer{border-top:1px solid var(--border);padding-top:12px;display:flex;gap:7px;margin-top:auto;}
-.dc-footer button{flex:1;padding:8px;border:1px solid var(--border);border-radius:9px;cursor:pointer;font-size:12px;font-weight:600;background:var(--surface);transition:all var(--tr);}
-.dc-apply{color:#a78bfa;}
-.dc-apply:hover{background:rgba(139,92,246,0.2);border-color:rgba(139,92,246,.3);}
-.dc-edit{color:var(--c);}
-.dc-edit:hover{background:rgba(34,211,238,0.15);border-color:rgba(34,211,238,.25);}
-.dc-del{color:var(--r);flex:0;width:36px;padding:8px 0;}
-.dc-del:hover{background:rgba(244,63,94,0.15);border-color:rgba(244,63,94,.25);}
+    .sidebar.collapsed .nav-label,
+    .sidebar.collapsed .logo-text-wrap,
+    .sidebar.collapsed .nav-sec,
+    .sidebar.collapsed .sb-user-info {
+      display: none;
+    }
 
-/* ═══════════════════════════════ PLACEMENT STATS ══════════════════════ */
-.pl-stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:16px;margin-bottom:22px;}
+    /* Logo */
+    .logo {
+      padding: 22px 18px 18px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
 
-/* ═══════════════════════════════ MODAL ════════════════════════════════ */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:2000;opacity:0;pointer-events:none;transition:opacity var(--tr);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
-.overlay.open{opacity:1;pointer-events:all;}
-.modal{
-  background:rgba(10,10,24,0.95);border:1px solid rgba(255,255,255,0.12);border-radius:22px;
-  width:90%;max-width:560px;max-height:90vh;overflow-y:auto;
-  transform:scale(0.93) translateY(22px);transition:all var(--tr);
-  box-shadow:0 30px 90px rgba(0,0,0,.7);
-}
-.overlay.open .modal{transform:scale(1) translateY(0);}
-.modal-head{padding:22px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.modal-head h2{font-size:16px;font-weight:700;}
-.modal-x{background:rgba(255,255,255,0.06);border:none;color:var(--t2);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;transition:all var(--tr);}
-.modal-x:hover{background:rgba(244,63,94,0.2);color:var(--r);}
-.modal-body{padding:22px 24px;}
-.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, var(--v), var(--cd));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 900;
+      color: #fff;
+      box-shadow: 0 0 24px var(--vg);
+      position: relative;
+    }
 
-/* Forms */
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.fg{margin-bottom:14px;}
-.fg label{display:block;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
-.fg input,.fg select,.fg textarea{
-  width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);
-  color:var(--t);padding:10px 13px;border-radius:10px;font-size:13px;outline:none;
-  transition:all var(--tr);
-}
-.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--v);box-shadow:0 0 0 3px var(--vg);}
-.fg textarea{resize:vertical;min-height:76px;}
-.fg select option{background:#0d0d20;}
-.btn{padding:10px 22px;border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:all var(--tr);}
-.btn-p{background:linear-gradient(135deg,var(--v),var(--vd));color:#fff;position:relative;overflow:hidden;}
-.btn-p:hover{transform:translateY(-1px);box-shadow:0 6px 22px var(--vg);}
-.btn-g{background:rgba(255,255,255,0.06);color:var(--t2);border:1px solid var(--border);}
-.btn-g:hover{background:rgba(255,255,255,0.1);}
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border-radius: 13px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), transparent);
+      pointer-events: none;
+    }
 
-/* Apply overlay */
-.apply-stu-item{display:flex;align-items:center;gap:11px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:11px;margin-bottom:6px;cursor:pointer;transition:all var(--tr);border:1px solid transparent;}
-.apply-stu-item:hover{background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,.2);}
-.apply-stu-item input[type=checkbox]{accent-color:var(--v);width:16px;height:16px;}
+    .logo-text-wrap {
+      overflow: hidden;
+    }
 
-/* ═══════════════════════════════ TOAST ════════════════════════════════ */
-.toast-wrap{position:fixed;bottom:24px;right:24px;display:flex;flex-direction:column;gap:8px;z-index:9999;}
-.toast{
-  padding:12px 16px;border-radius:13px;font-size:13px;font-weight:500;
-  display:flex;align-items:center;gap:10px;min-width:230px;
-  animation:toastIn .3s var(--tr);
-  box-shadow:0 8px 32px rgba(0,0,0,.6);
-}
-.toast.ts{background:rgba(6,25,15,0.97);border:1px solid rgba(16,185,129,.4);color:#34d399;}
-.toast.te{background:rgba(25,5,10,0.97);border:1px solid rgba(244,63,94,.35);color:#fb7185;}
-.toast.ti{background:rgba(10,8,25,0.97);border:1px solid rgba(139,92,246,.35);color:#c4b5fd;}
-@keyframes toastIn{from{opacity:0;transform:translateX(36px);}to{opacity:1;transform:translateX(0);}}
-@keyframes toastOut{to{opacity:0;transform:translateX(36px);}}
+    .logo-name {
+      font-size: 17px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #c4b5fd, var(--c));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      white-space: nowrap;
+    }
 
-/* ═══════════════════════════════ STATUS SELECT ═════════════════════════ */
-.st-sel{background:var(--surface);border:1px solid var(--border);color:var(--t);padding:5px 9px;border-radius:8px;font-size:12px;outline:none;cursor:pointer;transition:border var(--tr);}
-.st-sel:focus{border-color:var(--v);}
-.st-sel option{background:#0d0d20;}
+    .logo-sub {
+      font-size: 9.5px;
+      letter-spacing: 1.2px;
+      color: var(--t3);
+      margin-top: 1px;
+      text-transform: uppercase;
+    }
 
-/* ═══════════════════════════════ EMPTY ════════════════════════════════ */
-.empty{text-align:center;padding:52px 20px;color:var(--t3);}
-.empty i{font-size:44px;margin-bottom:14px;opacity:.3;}
-.empty p{font-size:14px;}
+    /* Nav */
+    .nav {
+      flex: 1;
+      padding: 14px 10px;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
 
-/* pkg highlight */
-.pkg{font-size:15px;font-weight:800;color:var(--g);}
+    .nav-sec {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 1.4px;
+      color: var(--t3);
+      padding: 10px 10px 6px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
 
-/* ── Topbar gradient accent ── */
-.topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(139,92,246,0.5) 30%,rgba(34,211,238,0.4) 70%,transparent);pointer-events:none;}
-.topbar{position:relative;}
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      color: var(--t3);
+      transition: all var(--tr);
+      margin-bottom: 2px;
+      position: relative;
+      white-space: nowrap;
+    }
 
-/* ── Logo pulse glow ── */
-.logo-icon{animation:logoPulse 3s ease-in-out infinite;}
-@keyframes logoPulse{0%,100%{box-shadow:0 0 24px var(--vg);}50%{box-shadow:0 0 36px rgba(139,92,246,0.55),0 0 60px rgba(139,92,246,0.2);}}
+    .nav-item:hover {
+      color: var(--t2);
+      background: rgba(255, 255, 255, 0.04);
+    }
 
-/* ── Active status pulse dot ── */
-.bg i{animation:dotPulse 2s ease-in-out infinite;}
-@keyframes dotPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
+    .nav-item.active {
+      color: #fff;
+      background: linear-gradient(90deg, rgba(139, 92, 246, 0.22), rgba(139, 92, 246, 0.06));
+    }
 
-/* ── Sidebar active glow ── */
-.nav-item.active{box-shadow:inset 0 0 20px rgba(139,92,246,0.08);}
+    .nav-item.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 18%;
+      height: 64%;
+      width: 3px;
+      background: linear-gradient(180deg, var(--v), var(--c));
+      border-radius: 0 3px 3px 0;
+    }
 
-/* ── Card glass inner light ── */
-.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);pointer-events:none;}
-.tcard,.chart-card,.co-card,.drive-card{position:relative;}
-.tcard::after,.chart-card::after{content:'';position:absolute;top:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);pointer-events:none;}
+    .nav-ico {
+      width: 33px;
+      height: 33px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13.5px;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.05);
+      transition: all var(--tr);
+    }
 
-/* ── Stagger table rows in ── */
-tbody tr{animation:fadeUp .3s var(--tr) both;}
-tbody tr:nth-child(1){animation-delay:.03s}tbody tr:nth-child(2){animation-delay:.06s}
-tbody tr:nth-child(3){animation-delay:.09s}tbody tr:nth-child(4){animation-delay:.12s}
-tbody tr:nth-child(5){animation-delay:.15s}tbody tr:nth-child(6){animation-delay:.18s}
-tbody tr:nth-child(7){animation-delay:.21s}tbody tr:nth-child(8){animation-delay:.24s}
+    .nav-item:hover .nav-ico {
+      background: rgba(139, 92, 246, 0.12);
+      color: #a78bfa;
+    }
 
-/* ── Pill search in topbar ── */
-.search-wrap{position:relative;}
+    .nav-item.active .nav-ico {
+      background: rgba(139, 92, 246, 0.22);
+      color: #c4b5fd;
+      box-shadow: 0 0 16px rgba(139, 92, 246, 0.3);
+    }
 
-/* ── Drive card header circles animated ── */
-.dc-hc1{animation:floatSlow 6s ease-in-out infinite;}
-.dc-hc2{animation:floatSlow 8s ease-in-out infinite reverse;}
-@keyframes floatSlow{0%,100%{transform:translate(0,0);}50%{transform:translate(-8px,8px);}}
+    .nav-label {
+      font-size: 13px;
+      font-weight: 500;
+    }
 
-/* ── Badge glow ── */
-.bg{box-shadow:0 0 10px rgba(16,185,129,0.2);}
-.bc{box-shadow:0 0 10px rgba(34,211,238,0.18);}
-.ba{box-shadow:0 0 10px rgba(245,158,11,0.18);}
-.bv{box-shadow:0 0 8px rgba(139,92,246,0.2);}
+    /* Sidebar user */
+    .sb-user {
+      padding: 12px 10px 16px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: all var(--tr);
+    }
 
-/* ── Welcome banner border glow ── */
-.welcome{box-shadow:0 0 0 1px rgba(139,92,246,0.15),0 20px 60px rgba(139,92,246,0.08);}
+    .sb-user:hover {
+      background: var(--surface);
+    }
 
-/* ── Topbar button gradient border ── */
-.tb-btn{box-shadow:0 0 0 1px rgba(139,92,246,0.3);}
-.tb-btn:hover{box-shadow:0 8px 28px var(--vg),0 0 0 1px rgba(139,92,246,0.5);}
+    .sb-av {
+      width: 33px;
+      height: 33px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--v), var(--c));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
 
-/* ── Loading skeleton ── */
-.skeleton{background:linear-gradient(90deg,rgba(255,255,255,0.04) 25%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:10px;}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.skel-card{height:200px;border-radius:var(--rad);border:1px solid var(--border);}
-.skel-row{height:52px;border-radius:10px;margin-bottom:8px;}
+    .sb-user-info {
+      overflow: hidden;
+    }
 
-/* ── Responsive ── */
-@media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:820px){.chart-row{grid-template-columns:1fr;}}
-@media(max-width:600px){.frow{grid-template-columns:1fr;}}
-@media(max-width:480px){.tabs{flex-wrap:wrap;}.sidebar{width:70px;min-width:70px;}.sidebar .nav-label,.sidebar .logo-text-wrap,.sidebar .nav-sec,.sidebar .sb-user-info{display:none;}}
+    .sb-uname {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--t);
+    }
 
-/* ── Staggered card animations ── */
-.sc:nth-child(1){animation-delay:.05s}
-.sc:nth-child(2){animation-delay:.10s}
-.sc:nth-child(3){animation-delay:.15s}
-.sc:nth-child(4){animation-delay:.20s}
-.sc{animation:fadeUp .4s var(--tr) both;}
+    .sb-urole {
+      font-size: 10.5px;
+      color: var(--t3);
+    }
 
-/* ── Table row left-border on hover ── */
-tbody tr:hover td:first-child{position:relative;}
-tbody tr:hover td:first-child::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--v),var(--c));border-radius:0 2px 2px 0;}
+    /* ═══════════════════════════════ MAIN ═════════════════════════════════ */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
 
-/* ── Gradient text util ── */
-.grad{background:linear-gradient(135deg,#c4b5fd,var(--c));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    /* Topbar */
+    .topbar {
+      height: 65px;
+      display: flex;
+      align-items: center;
+      padding: 0 26px;
+      gap: 14px;
+      flex-shrink: 0;
+      background: rgba(6, 6, 15, 0.7);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
 
-/* ── Topbar search pill ── */
-.tb-search{border-radius:99px;}
-.tb-search:focus{border-radius:99px;}
+    .topbar-left {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-/* ── Card shimmer on hover ── */
-.tcard{transition:box-shadow var(--tr);}
-.tcard:hover{box-shadow:0 0 0 1px rgba(139,92,246,0.1);}
+    .menu-toggle {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--t2);
+      transition: all var(--tr);
+      font-size: 13px;
+      flex-shrink: 0;
+    }
 
-/* ── Drive card hover border ── */
-.drive-card:hover{border-color:rgba(139,92,246,0.3);}
-.co-card:hover{border-color:rgba(139,92,246,0.3);}
+    .menu-toggle:hover {
+      background: var(--surface2);
+      border-color: var(--border2);
+      color: var(--t);
+    }
 
-/* ── Welcome banner shine sweep ── */
-@keyframes bannerShine{0%{background-position:-200% center;}100%{background-position:200% center;}}
+    .pg-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--t);
+    }
 
-/* ── Sidebar width fix ── */
-.sidebar{width:220px;min-width:220px;}
-.sidebar.collapsed{width:66px;min-width:66px;}
-</style>
+    .pg-subtitle {
+      font-size: 12px;
+      color: var(--t3);
+      margin-left: 8px;
+    }
+
+    .search-wrap {
+      position: relative;
+    }
+
+    .search-wrap i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--t3);
+      font-size: 12px;
+      pointer-events: none;
+    }
+
+    .tb-search {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--t);
+      padding: 9px 14px 9px 34px;
+      border-radius: 11px;
+      width: 210px;
+      font-size: 13px;
+      outline: none;
+      transition: all var(--tr);
+    }
+
+    .tb-search:focus {
+      border-color: var(--v);
+      width: 250px;
+      box-shadow: 0 0 0 3px var(--vg);
+    }
+
+    .tb-search::placeholder {
+      color: var(--t3);
+    }
+
+    .tb-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      background: linear-gradient(135deg, var(--v), var(--vd));
+      border: none;
+      color: #fff;
+      border-radius: 11px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--tr);
+      white-space: nowrap;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tb-btn::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.18) 50%, transparent 60%);
+      transform: translateX(-100%);
+      transition: transform 0.5s;
+    }
+
+    .tb-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px var(--vg);
+    }
+
+    .tb-btn:hover::after {
+      transform: translateX(100%);
+    }
+
+    .tb-av {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--v), var(--c));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 0 0 2px var(--border2);
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 22px;
+    }
+
+    .page {
+      display: none;
+      animation: fadeUp .35s var(--tr) both;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ═══════════════════════════════ DASHBOARD ═══════════════════════════ */
+
+    /* Welcome Banner */
+    .welcome {
+      animation: fadeUp .5s var(--tr) both;
+      background: linear-gradient(135deg, rgba(109, 40, 217, 0.18) 0%, rgba(6, 182, 212, 0.08) 50%, transparent 100%);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+      border-radius: var(--rad);
+      padding: 26px 30px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .welcome::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      right: -60px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.2), transparent 70%);
+      pointer-events: none;
+    }
+
+    .welcome::after {
+      content: '';
+      position: absolute;
+      bottom: -40px;
+      right: 30%;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(34, 211, 238, 0.1), transparent 70%);
+      pointer-events: none;
+    }
+
+    .wb-eyebrow {
+      font-size: 12px;
+      font-weight: 500;
+      color: #a78bfa;
+      letter-spacing: .5px;
+      margin-bottom: 6px;
+    }
+
+    .wb-title {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 8px;
+      letter-spacing: -.5px;
+    }
+
+    .wb-title span {
+      background: linear-gradient(90deg, #c4b5fd, var(--c), #a78bfa);
+      background-size: 200%;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: bannerShine 4s linear infinite;
+    }
+
+    .wb-desc {
+      font-size: 13px;
+      color: var(--t2);
+      max-width: 460px;
+      line-height: 1.6;
+    }
+
+    .wb-chips {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .wb-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-size: 11.5px;
+      color: var(--t2);
+    }
+
+    .wb-chip i {
+      font-size: 10px;
+      color: #a78bfa;
+    }
+
+    /* Stat Cards */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .sc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rad);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: all var(--tr);
+    }
+
+    .sc::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .sc:hover {
+      transform: translateY(-5px);
+      border-color: var(--border2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .sc-glow {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      top: -60px;
+      right: -60px;
+      filter: blur(55px);
+      opacity: 0.18;
+      transition: opacity var(--tr);
+    }
+
+    .sc:hover .sc-glow {
+      opacity: 0.32;
+    }
+
+    .sc.sv .sc-glow {
+      background: var(--v);
+    }
+
+    .sc.sc2 .sc-glow {
+      background: var(--c);
+    }
+
+    .sc.sa .sc-glow {
+      background: var(--a);
+    }
+
+    .sc.sg .sc-glow {
+      background: var(--g);
+    }
+
+    .sc-ico {
+      width: 46px;
+      height: 46px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sc.sv .sc-ico {
+      background: rgba(139, 92, 246, 0.2);
+      color: #c4b5fd;
+      box-shadow: 0 0 22px rgba(139, 92, 246, 0.3);
+    }
+
+    .sc.sc2 .sc-ico {
+      background: rgba(34, 211, 238, 0.15);
+      color: var(--c);
+      box-shadow: 0 0 22px rgba(34, 211, 238, 0.25);
+    }
+
+    .sc.sa .sc-ico {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--a);
+      box-shadow: 0 0 22px rgba(245, 158, 11, 0.25);
+    }
+
+    .sc.sg .sc-ico {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--g);
+      box-shadow: 0 0 22px rgba(16, 185, 129, 0.25);
+    }
+
+    .sc-val {
+      font-size: 46px;
+      font-weight: 900;
+      letter-spacing: -3px;
+      line-height: 1;
+      margin: 16px 0 5px;
+      background: linear-gradient(160deg, #ffffff 0%, #cbd5e1 100%);
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sc-lbl {
+      font-size: 13px;
+      color: var(--t2);
+      font-weight: 500;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sc-sub {
+      font-size: 11px;
+      color: var(--t3);
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .sc-sub i {
+      font-size: 9px;
+    }
+
+    .sc.sg .sc-sub i,
+    .sc.sg .sc-sub span {
+      color: var(--g);
+    }
+
+    .sc.sv .sc-sub i,
+    .sc.sv .sc-sub span {
+      color: #a78bfa;
+    }
+
+    /* Charts */
+    .chart-row {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rad);
+      padding: 22px;
+    }
+
+    .cc-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .cc-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cc-title i {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(139, 92, 246, 0.15);
+      color: #a78bfa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+
+    .cc-pill {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 99px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--g);
+    }
+
+    .ring-center {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-label {
+      position: absolute;
+      text-align: center;
+    }
+
+    .ring-num {
+      font-size: 28px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f8fafc, #94a3b8);
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .ring-sub {
+      font-size: 10px;
+      color: var(--t3);
+    }
+
+    /* ═══════════════════════════════ TABLE CARD ═══════════════════════════ */
+    .tcard {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rad);
+      overflow: hidden;
+    }
+
+    .tcard-head {
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tcard-head h3 {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      padding: 11px 18px;
+      text-align: left;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .9px;
+      color: var(--t3);
+      text-transform: uppercase;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 13px 18px;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    tbody tr {
+      transition: all var(--tr);
+    }
+
+    tbody tr:hover td {
+      background: rgba(139, 92, 246, 0.07);
+    }
+
+    tbody tr:hover td:first-child {
+      box-shadow: inset 3px 0 0 var(--v);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .cell-name {
+      font-weight: 600;
+      color: var(--t);
+    }
+
+    .cell-muted {
+      color: var(--t3);
+      font-size: 11.5px;
+      margin-top: 2px;
+    }
+
+    .av-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .av {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11.5px;
+      font-weight: 700;
+      flex-shrink: 0;
+      color: #fff;
+    }
+
+    .act {
+      display: flex;
+      gap: 5px;
+    }
+
+    .ib {
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11.5px;
+      transition: all var(--tr);
+    }
+
+    .ib-e {
+      background: rgba(139, 92, 246, 0.12);
+      color: #a78bfa;
+    }
+
+    .ib-e:hover {
+      background: rgba(139, 92, 246, 0.3);
+      transform: scale(1.08);
+    }
+
+    .ib-d {
+      background: rgba(244, 63, 94, 0.1);
+      color: var(--r);
+    }
+
+    .ib-d:hover {
+      background: rgba(244, 63, 94, 0.28);
+      transform: scale(1.08);
+    }
+
+    .ib-v {
+      background: rgba(34, 211, 238, 0.1);
+      color: var(--c);
+    }
+
+    .ib-v:hover {
+      background: rgba(34, 211, 238, 0.28);
+      transform: scale(1.08);
+    }
+
+    /* CGPA bar */
+    .cgpa-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .cgpa-track {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 99px;
+      overflow: hidden;
+      min-width: 60px;
+    }
+
+    .cgpa-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--v), var(--c));
+      transition: width .7s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .cgpa-num {
+      font-weight: 700;
+      min-width: 26px;
+      color: var(--t);
+    }
+
+    /* ═══════════════════════════════ FILTERS ══════════════════════════════ */
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .fi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--t);
+      padding: 9px 13px;
+      border-radius: 10px;
+      font-size: 13px;
+      outline: none;
+      cursor: pointer;
+      transition: all var(--tr);
+    }
+
+    .fi:focus {
+      border-color: var(--v);
+      box-shadow: 0 0 0 3px var(--vg);
+    }
+
+    .fi::placeholder {
+      color: var(--t3);
+    }
+
+    .fi-stretch {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 3px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+    }
+
+    .tab {
+      padding: 6px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      background: transparent;
+      color: var(--t3);
+      transition: all var(--tr);
+    }
+
+    .tab.on {
+      background: linear-gradient(135deg, var(--v), var(--vd));
+      color: #fff;
+      box-shadow: 0 4px 14px var(--vg);
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .sec-ttl {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    /* ═══════════════════════════════ BADGES ═══════════════════════════════ */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge i {
+      font-size: 6px;
+    }
+
+    .bg {
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+    }
+
+    .bb {
+      background: rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+    }
+
+    .bc {
+      background: rgba(34, 211, 238, 0.12);
+      color: var(--c);
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.18);
+    }
+
+    .ba {
+      background: rgba(245, 158, 11, 0.12);
+      color: #fbbf24;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.18);
+    }
+
+    .bv {
+      background: rgba(139, 92, 246, 0.15);
+      color: #c4b5fd;
+    }
+
+    .br {
+      background: rgba(244, 63, 94, 0.1);
+      color: #fb7185;
+    }
+
+    .bk {
+      background: rgba(100, 116, 139, 0.12);
+      color: var(--t3);
+    }
+
+    /* ═══════════════════════════════ COMPANY CARDS ════════════════════════ */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 16px;
+    }
+
+    .co-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rad);
+      overflow: hidden;
+      transition: all var(--tr);
+      cursor: default;
+    }
+
+    .co-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--border2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+    }
+
+    .co-banner {
+      height: 68px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      padding: 12px 18px;
+    }
+
+    .co-banner::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, .25);
+    }
+
+    .co-ava {
+      width: 50px;
+      height: 50px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .4);
+    }
+
+    .co-body {
+      padding: 14px 18px 18px;
+    }
+
+    .co-name {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .co-ind {
+      font-size: 12px;
+      color: var(--t3);
+    }
+
+    .co-desc {
+      font-size: 12px;
+      color: var(--t2);
+      line-height: 1.55;
+      margin: 10px 0;
+    }
+
+    .co-site {
+      font-size: 11.5px;
+      color: var(--c);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+
+    .co-stats {
+      display: flex;
+      gap: 0;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .co-stat {
+      flex: 1;
+      text-align: center;
+      padding: 0 8px;
+    }
+
+    .co-stat:not(:last-child) {
+      border-right: 1px solid var(--border);
+    }
+
+    .co-stat-n {
+      font-size: 20px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f8fafc, #94a3b8);
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .co-stat-l {
+      font-size: 10px;
+      color: var(--t3);
+      margin-top: 2px;
+    }
+
+    .co-acts {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .co-acts button {
+      flex: 1;
+      padding: 7px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--surface);
+      transition: all var(--tr);
+    }
+
+    .co-acts .co-e {
+      color: #a78bfa;
+    }
+
+    .co-acts .co-e:hover {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: rgba(139, 92, 246, .3);
+    }
+
+    .co-acts .co-d {
+      color: var(--r);
+    }
+
+    .co-acts .co-d:hover {
+      background: rgba(244, 63, 94, 0.15);
+      border-color: rgba(244, 63, 94, .25);
+    }
+
+    /* ═══════════════════════════════ DRIVE CARDS ══════════════════════════ */
+    .drive-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--rad);
+      overflow: hidden;
+      transition: all var(--tr);
+      cursor: default;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .drive-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--border2);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .5);
+    }
+
+    .dc-head {
+      height: 78px;
+      position: relative;
+      overflow: hidden;
+      padding: 16px 18px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+
+    .dc-head::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+    }
+
+    .dc-hc1,
+    .dc-hc2 {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .dc-hc1 {
+      width: 100px;
+      height: 100px;
+      top: -30px;
+      right: -20px;
+    }
+
+    .dc-hc2 {
+      width: 60px;
+      height: 60px;
+      top: 10px;
+      right: 60px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .drive-card.upcoming .dc-head {
+      background: linear-gradient(135deg, #3b1d8a, #1e3a5f);
+    }
+
+    .drive-card.ongoing .dc-head {
+      background: linear-gradient(135deg, #7c2d12, #14532d);
+    }
+
+    .drive-card.completed .dc-head {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+    }
+
+    .dc-co {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.8);
+      letter-spacing: .3px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .dc-body {
+      padding: 18px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dc-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .dc-role {
+      font-size: 12px;
+      color: var(--t3);
+      margin-bottom: 12px;
+    }
+
+    .dc-pkg {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--g);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .dc-pkg span {
+      font-size: 12px;
+      color: var(--t3);
+      font-weight: 400;
+    }
+
+    .dc-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .dc-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--t3);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      padding: 3px 9px;
+      border-radius: 99px;
+    }
+
+    .dc-chip i {
+      color: #a78bfa;
+      font-size: 9px;
+    }
+
+    .dc-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      display: flex;
+      gap: 7px;
+      margin-top: auto;
+    }
+
+    .dc-footer button {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--surface);
+      transition: all var(--tr);
+    }
+
+    .dc-apply {
+      color: #a78bfa;
+    }
+
+    .dc-apply:hover {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: rgba(139, 92, 246, .3);
+    }
+
+    .dc-edit {
+      color: var(--c);
+    }
+
+    .dc-edit:hover {
+      background: rgba(34, 211, 238, 0.15);
+      border-color: rgba(34, 211, 238, .25);
+    }
+
+    .dc-del {
+      color: var(--r);
+      flex: 0;
+      width: 36px;
+      padding: 8px 0;
+    }
+
+    .dc-del:hover {
+      background: rgba(244, 63, 94, 0.15);
+      border-color: rgba(244, 63, 94, .25);
+    }
+
+    /* ═══════════════════════════════ PLACEMENT STATS ══════════════════════ */
+    .pl-stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    /* ═══════════════════════════════ MODAL ════════════════════════════════ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--tr);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: rgba(10, 10, 24, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 22px;
+      width: 90%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.93) translateY(22px);
+      transition: all var(--tr);
+      box-shadow: 0 30px 90px rgba(0, 0, 0, .7);
+    }
+
+    .overlay.open .modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .modal-head {
+      padding: 22px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-head h2 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .modal-x {
+      background: rgba(255, 255, 255, 0.06);
+      border: none;
+      color: var(--t2);
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all var(--tr);
+    }
+
+    .modal-x:hover {
+      background: rgba(244, 63, 94, 0.2);
+      color: var(--r);
+    }
+
+    .modal-body {
+      padding: 22px 24px;
+    }
+
+    .modal-foot {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    /* Forms */
+    .frow {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .fg {
+      margin-bottom: 14px;
+    }
+
+    .fg label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      margin-bottom: 6px;
+    }
+
+    .fg input,
+    .fg select,
+    .fg textarea {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--t);
+      padding: 10px 13px;
+      border-radius: 10px;
+      font-size: 13px;
+      outline: none;
+      transition: all var(--tr);
+    }
+
+    .fg input:focus,
+    .fg select:focus,
+    .fg textarea:focus {
+      border-color: var(--v);
+      box-shadow: 0 0 0 3px var(--vg);
+    }
+
+    .fg textarea {
+      resize: vertical;
+      min-height: 76px;
+    }
+
+    .fg select option {
+      background: #0d0d20;
+    }
+
+    .btn {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all var(--tr);
+    }
+
+    .btn-p {
+      background: linear-gradient(135deg, var(--v), var(--vd));
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-p:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 22px var(--vg);
+    }
+
+    .btn-g {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--t2);
+      border: 1px solid var(--border);
+    }
+
+    .btn-g:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Apply overlay */
+    .apply-stu-item {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 11px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all var(--tr);
+      border: 1px solid transparent;
+    }
+
+    .apply-stu-item:hover {
+      background: rgba(139, 92, 246, 0.1);
+      border-color: rgba(139, 92, 246, .2);
+    }
+
+    .apply-stu-item input[type=checkbox] {
+      accent-color: var(--v);
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ═══════════════════════════════ TOAST ════════════════════════════════ */
+    .toast-wrap {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 9999;
+    }
+
+    .toast {
+      padding: 12px 16px;
+      border-radius: 13px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 230px;
+      animation: toastIn .3s var(--tr);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .6);
+    }
+
+    .toast.ts {
+      background: rgba(6, 25, 15, 0.97);
+      border: 1px solid rgba(16, 185, 129, .4);
+      color: #34d399;
+    }
+
+    .toast.te {
+      background: rgba(25, 5, 10, 0.97);
+      border: 1px solid rgba(244, 63, 94, .35);
+      color: #fb7185;
+    }
+
+    .toast.ti {
+      background: rgba(10, 8, 25, 0.97);
+      border: 1px solid rgba(139, 92, 246, .35);
+      color: #c4b5fd;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(36px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes toastOut {
+      to {
+        opacity: 0;
+        transform: translateX(36px);
+      }
+    }
+
+    /* ═══════════════════════════════ STATUS SELECT ═════════════════════════ */
+    .st-sel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--t);
+      padding: 5px 9px;
+      border-radius: 8px;
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
+      transition: border var(--tr);
+    }
+
+    .st-sel:focus {
+      border-color: var(--v);
+    }
+
+    .st-sel option {
+      background: #0d0d20;
+    }
+
+    /* ═══════════════════════════════ EMPTY ════════════════════════════════ */
+    .empty {
+      text-align: center;
+      padding: 52px 20px;
+      color: var(--t3);
+    }
+
+    .empty i {
+      font-size: 44px;
+      margin-bottom: 14px;
+      opacity: .3;
+    }
+
+    .empty p {
+      font-size: 14px;
+    }
+
+    /* pkg highlight */
+    .pkg {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--g);
+    }
+
+    /* ── Topbar gradient accent ── */
+    .topbar::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5) 30%, rgba(34, 211, 238, 0.4) 70%, transparent);
+      pointer-events: none;
+    }
+
+    .topbar {
+      position: relative;
+    }
+
+    /* ── Logo pulse glow ── */
+    .logo-icon {
+      animation: logoPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes logoPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 24px var(--vg);
+      }
+
+      50% {
+        box-shadow: 0 0 36px rgba(139, 92, 246, 0.55), 0 0 60px rgba(139, 92, 246, 0.2);
+      }
+    }
+
+    /* ── Active status pulse dot ── */
+    .bg i {
+      animation: dotPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes dotPulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: .4;
+        transform: scale(.7);
+      }
+    }
+
+    /* ── Sidebar active glow ── */
+    .nav-item.active {
+      box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.08);
+    }
+
+    /* ── Card glass inner light ── */
+    .sc::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+      pointer-events: none;
+    }
+
+    .tcard,
+    .chart-card,
+    .co-card,
+    .drive-card {
+      position: relative;
+    }
+
+    .tcard::after,
+    .chart-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20px;
+      right: 20px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+      pointer-events: none;
+    }
+
+    /* ── Stagger table rows in ── */
+    tbody tr {
+      animation: fadeUp .3s var(--tr) both;
+    }
+
+    tbody tr:nth-child(1) {
+      animation-delay: .03s
+    }
+
+    tbody tr:nth-child(2) {
+      animation-delay: .06s
+    }
+
+    tbody tr:nth-child(3) {
+      animation-delay: .09s
+    }
+
+    tbody tr:nth-child(4) {
+      animation-delay: .12s
+    }
+
+    tbody tr:nth-child(5) {
+      animation-delay: .15s
+    }
+
+    tbody tr:nth-child(6) {
+      animation-delay: .18s
+    }
+
+    tbody tr:nth-child(7) {
+      animation-delay: .21s
+    }
+
+    tbody tr:nth-child(8) {
+      animation-delay: .24s
+    }
+
+    /* ── Pill search in topbar ── */
+    .search-wrap {
+      position: relative;
+    }
+
+    /* ── Drive card header circles animated ── */
+    .dc-hc1 {
+      animation: floatSlow 6s ease-in-out infinite;
+    }
+
+    .dc-hc2 {
+      animation: floatSlow 8s ease-in-out infinite reverse;
+    }
+
+    @keyframes floatSlow {
+
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      50% {
+        transform: translate(-8px, 8px);
+      }
+    }
+
+    /* ── Badge glow ── */
+    .bg {
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+    }
+
+    .bc {
+      box-shadow: 0 0 10px rgba(34, 211, 238, 0.18);
+    }
+
+    .ba {
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.18);
+    }
+
+    .bv {
+      box-shadow: 0 0 8px rgba(139, 92, 246, 0.2);
+    }
+
+    /* ── Welcome banner border glow ── */
+    .welcome {
+      box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.15), 0 20px 60px rgba(139, 92, 246, 0.08);
+    }
+
+    /* ── Topbar button gradient border ── */
+    .tb-btn {
+      box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.3);
+    }
+
+    .tb-btn:hover {
+      box-shadow: 0 8px 28px var(--vg), 0 0 0 1px rgba(139, 92, 246, 0.5);
+    }
+
+    /* ── Loading skeleton ── */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 10px;
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: 200% 0
+      }
+
+      100% {
+        background-position: -200% 0
+      }
+    }
+
+    .skel-card {
+      height: 200px;
+      border-radius: var(--rad);
+      border: 1px solid var(--border);
+    }
+
+    .skel-row {
+      height: 52px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    /* ── Responsive ── */
+    @media(max-width:900px) {
+      .stat-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media(max-width:820px) {
+      .chart-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media(max-width:600px) {
+      .frow {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media(max-width:480px) {
+      .tabs {
+        flex-wrap: wrap;
+      }
+
+      .sidebar {
+        width: 70px;
+        min-width: 70px;
+      }
+
+      .sidebar .nav-label,
+      .sidebar .logo-text-wrap,
+      .sidebar .nav-sec,
+      .sidebar .sb-user-info {
+        display: none;
+      }
+    }
+
+    /* ── Staggered card animations ── */
+    .sc:nth-child(1) {
+      animation-delay: .05s
+    }
+
+    .sc:nth-child(2) {
+      animation-delay: .10s
+    }
+
+    .sc:nth-child(3) {
+      animation-delay: .15s
+    }
+
+    .sc:nth-child(4) {
+      animation-delay: .20s
+    }
+
+    .sc {
+      animation: fadeUp .4s var(--tr) both;
+    }
+
+    /* ── Table row left-border on hover ── */
+    tbody tr:hover td:first-child {
+      position: relative;
+    }
+
+    tbody tr:hover td:first-child::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--v), var(--c));
+      border-radius: 0 2px 2px 0;
+    }
+
+    /* ── Gradient text util ── */
+    .grad {
+      background: linear-gradient(135deg, #c4b5fd, var(--c));
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ── Topbar search pill ── */
+    .tb-search {
+      border-radius: 99px;
+    }
+
+    .tb-search:focus {
+      border-radius: 99px;
+    }
+
+    /* ── Card shimmer on hover ── */
+    .tcard {
+      transition: box-shadow var(--tr);
+    }
+
+    .tcard:hover {
+      box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.1);
+    }
+
+    /* ── Drive card hover border ── */
+    .drive-card:hover {
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+
+    .co-card:hover {
+      border-color: rgba(139, 92, 246, 0.3);
+    }
+
+    /* ── Welcome banner shine sweep ── */
+    @keyframes bannerShine {
+      0% {
+        background-position: -200% center;
+      }
+
+      100% {
+        background-position: 200% center;
+      }
+    }
+
+    /* ── Sidebar width fix ── */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+    }
+
+    .sidebar.collapsed {
+      width: 66px;
+      min-width: 66px;
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- bg -->
-<div class="bg-grid"></div>
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-<div class="orb orb3"></div>
+  <!-- bg -->
+  <div class="bg-grid"></div>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
 
-<div class="layout">
+  <div class="layout">
 
-<!-- ══ SIDEBAR ══════════════════════════════════════════════════════════ -->
-<aside class="sidebar" id="sidebar">
-  <div class="logo">
-    <div class="logo-icon">P</div>
-    <div class="logo-text-wrap">
-      <div class="logo-name">PlaceMe</div>
-      <div class="logo-sub">Placement Portal</div>
-    </div>
-  </div>
-
-  <nav class="nav">
-    <div class="nav-sec">Main</div>
-    <div class="nav-item active" onclick="go('dashboard')"><div class="nav-ico"><i class="fas fa-chart-pie"></i></div><span class="nav-label">Dashboard</span></div>
-
-    <div class="nav-sec">Manage</div>
-    <div class="nav-item" onclick="go('students')"><div class="nav-ico"><i class="fas fa-user-graduate"></i></div><span class="nav-label">Students</span></div>
-    <div class="nav-item" onclick="go('companies')"><div class="nav-ico"><i class="fas fa-building"></i></div><span class="nav-label">Companies</span></div>
-    <div class="nav-item" onclick="go('drives')"><div class="nav-ico"><i class="fas fa-briefcase"></i></div><span class="nav-label">Drives</span></div>
-
-    <div class="nav-sec">Track</div>
-    <div class="nav-item" onclick="go('applications')"><div class="nav-ico"><i class="fas fa-file-alt"></i></div><span class="nav-label">Applications</span></div>
-    <div class="nav-item" onclick="go('placements')"><div class="nav-ico"><i class="fas fa-trophy"></i></div><span class="nav-label">Placements</span></div>
-  </nav>
-
-  <div class="sb-user">
-    <div class="sb-av">A</div>
-    <div class="sb-user-info">
-      <div class="sb-uname">Admin</div>
-      <div class="sb-urole">Placement Officer</div>
-    </div>
-  </div>
-</aside>
-
-<!-- ══ MAIN ═════════════════════════════════════════════════════════════ -->
-<div class="main">
-  <header class="topbar">
-    <div class="topbar-left">
-      <div class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
-      <div>
-        <span class="pg-title" id="pageTitle">Dashboard</span>
-        <span class="pg-subtitle" id="pageSubtitle"></span>
-      </div>
-    </div>
-    <div class="search-wrap">
-      <i class="fas fa-search"></i>
-      <input class="tb-search" id="globalSearch" placeholder="Search anything…" oninput="handleGlobalSearch(this.value)">
-    </div>
-    <button class="tb-btn" id="addBtn" onclick="handleAdd()" style="display:none"><i class="fas fa-plus"></i> Add New</button>
-    <div class="tb-av">A</div>
-  </header>
-
-  <div class="content">
-
-    <!-- ── DASHBOARD ─────────────────────────────── -->
-    <div class="page active" id="page-dashboard">
-      <div class="welcome">
-        <div class="wb-eyebrow"><i class="fas fa-sparkles"></i> Welcome back, Admin</div>
-        <h1 class="wb-title">Placement <span>Command Centre</span></h1>
-        <p class="wb-desc">Track student progress, manage company drives, and measure placement outcomes — all in one place.</p>
-        <div class="wb-chips">
-          <div class="wb-chip"><i class="fas fa-circle-check"></i>Live Data</div>
-          <div class="wb-chip"><i class="fas fa-bolt"></i>Real-time Updates</div>
-          <div class="wb-chip"><i class="fas fa-shield-halved"></i>DBMS Backed</div>
+    <!-- ══ SIDEBAR ══════════════════════════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-icon">P</div>
+        <div class="logo-text-wrap">
+          <div class="logo-name">PlaceMe</div>
+          <div class="logo-sub">Placement Portal</div>
         </div>
       </div>
 
-      <div class="stat-grid">
-        <div class="sc sv"><div class="sc-glow"></div><div class="sc-ico"><i class="fas fa-user-graduate"></i></div><div class="sc-val" id="s-students">0</div><div class="sc-lbl">Total Students</div><div class="sc-sub"><i class="fas fa-circle" style="color:#a78bfa"></i><span id="s-active">Active batch</span></div></div>
-        <div class="sc sc2"><div class="sc-glow"></div><div class="sc-ico"><i class="fas fa-building"></i></div><div class="sc-val" id="s-companies">0</div><div class="sc-lbl">Partner Companies</div><div class="sc-sub"><i class="fas fa-handshake" style="color:var(--c)"></i><span style="color:var(--c)">Campus partners</span></div></div>
-        <div class="sc sa"><div class="sc-glow"></div><div class="sc-ico"><i class="fas fa-briefcase"></i></div><div class="sc-val" id="s-drives">0</div><div class="sc-lbl">Placement Drives</div><div class="sc-sub"><i class="fas fa-calendar" style="color:var(--a)"></i><span style="color:var(--a)">This season</span></div></div>
-        <div class="sc sg"><div class="sc-glow"></div><div class="sc-ico"><i class="fas fa-trophy"></i></div><div class="sc-val" id="s-placed">0</div><div class="sc-lbl">Students Placed</div><div class="sc-sub"><i class="fas fa-arrow-up"></i><span id="s-rate">0% placement rate</span></div></div>
-      </div>
-
-      <div class="chart-row">
-        <div class="chart-card">
-          <div class="cc-head"><div class="cc-title"><i class="fas fa-chart-bar"></i>Department-wise Placement</div><span class="cc-pill">This Year</span></div>
-          <canvas id="deptChart" style="max-height:180px"></canvas>
+      <nav class="nav">
+        <div class="nav-sec">Main</div>
+        <div class="nav-item active" onclick="go('dashboard')">
+          <div class="nav-ico"><i class="fas fa-chart-pie"></i></div><span class="nav-label">Dashboard</span>
         </div>
-        <div class="chart-card">
-          <div class="cc-head"><div class="cc-title"><i class="fas fa-circle-half-stroke"></i>Drive Status</div></div>
-          <div class="ring-center" style="height:180px">
-            <canvas id="driveChart"></canvas>
-            <div class="ring-label"><div class="ring-num" id="s-drives2">0</div><div class="ring-sub">Total Drives</div></div>
+
+        <div class="nav-sec">Manage</div>
+        <div class="nav-item" onclick="go('students')">
+          <div class="nav-ico"><i class="fas fa-user-graduate"></i></div><span class="nav-label">Students</span>
+        </div>
+        <div class="nav-item" onclick="go('companies')">
+          <div class="nav-ico"><i class="fas fa-building"></i></div><span class="nav-label">Companies</span>
+        </div>
+        <div class="nav-item" onclick="go('drives')">
+          <div class="nav-ico"><i class="fas fa-briefcase"></i></div><span class="nav-label">Drives</span>
+        </div>
+
+        <div class="nav-sec">Track</div>
+        <div class="nav-item" onclick="go('applications')">
+          <div class="nav-ico"><i class="fas fa-file-alt"></i></div><span class="nav-label">Applications</span>
+        </div>
+        <div class="nav-item" onclick="go('placements')">
+          <div class="nav-ico"><i class="fas fa-trophy"></i></div><span class="nav-label">Placements</span>
+        </div>
+      </nav>
+
+      <div class="sb-user">
+        <div class="sb-av">A</div>
+        <div class="sb-user-info">
+          <div class="sb-uname">Admin</div>
+          <div class="sb-urole">Placement Officer</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ══ MAIN ═════════════════════════════════════════════════════════════ -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+          <div>
+            <span class="pg-title" id="pageTitle">Dashboard</span>
+            <span class="pg-subtitle" id="pageSubtitle"></span>
           </div>
         </div>
-      </div>
-
-      <div class="sec-head"><div class="sec-ttl"><i class="fas fa-medal" style="color:var(--a);margin-right:8px"></i>Recent Placements</div></div>
-      <div class="tcard">
-        <table><thead><tr><th>Student</th><th>Company</th><th>Role</th><th>Package</th><th>Offer Date</th></tr></thead>
-        <tbody id="recentTbl"></tbody></table>
-      </div>
-    </div>
-
-    <!-- ── STUDENTS ───────────────────────────────── -->
-    <div class="page" id="page-students">
-      <div class="filters">
-        <input class="fi fi-stretch" id="stuSearch" placeholder="Search name, email, skills…" oninput="renderStudents()">
-        <select class="fi" id="stuDept" onchange="renderStudents()"><option value="">All Departments</option></select>
-        <select class="fi" id="stuStatus" onchange="renderStudents()"><option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
-      </div>
-      <div class="tcard">
-        <div class="tcard-head"><h3 id="stuCount">Students</h3><button class="tb-btn" style="padding:7px 14px;font-size:12px" onclick="openAddStudent()"><i class="fas fa-plus"></i> Add</button></div>
-        <table><thead><tr><th>Student</th><th>Department</th><th>CGPA</th><th>Skills</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody id="stuTbl"></tbody></table>
-      </div>
-    </div>
-
-    <!-- ── COMPANIES ──────────────────────────────── -->
-    <div class="page" id="page-companies">
-      <div class="filters">
-        <input class="fi fi-stretch" id="coSearch" placeholder="Search companies…" oninput="renderCompanies()">
-        <select class="fi" id="coIndustry" onchange="renderCompanies()"><option value="">All Industries</option></select>
-      </div>
-      <div class="cards-grid" id="coGrid"></div>
-    </div>
-
-    <!-- ── DRIVES ─────────────────────────────────── -->
-    <div class="page" id="page-drives">
-      <div class="filters">
-        <input class="fi fi-stretch" id="drSearch" placeholder="Search drives…" oninput="renderDrives()">
-        <div class="tabs">
-          <button class="tab on" onclick="setDriveFilter('',this)">All</button>
-          <button class="tab" onclick="setDriveFilter('upcoming',this)">Upcoming</button>
-          <button class="tab" onclick="setDriveFilter('ongoing',this)">Ongoing</button>
-          <button class="tab" onclick="setDriveFilter('completed',this)">Completed</button>
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input class="tb-search" id="globalSearch" placeholder="Search anything…"
+            oninput="handleGlobalSearch(this.value)">
         </div>
-      </div>
-      <div class="cards-grid" id="drGrid"></div>
-    </div>
+        <button class="tb-btn" id="addBtn" onclick="handleAdd()" style="display:none"><i class="fas fa-plus"></i> Add
+          New</button>
+        <div class="tb-av">A</div>
+      </header>
 
-    <!-- ── APPLICATIONS ───────────────────────────── -->
-    <div class="page" id="page-applications">
-      <div class="filters">
-        <input class="fi fi-stretch" id="appSearch" placeholder="Search applications…" oninput="renderApplications()">
-        <div class="tabs">
-          <button class="tab on" onclick="setAppFilter('',this)">All</button>
-          <button class="tab" onclick="setAppFilter('applied',this)">Applied</button>
-          <button class="tab" onclick="setAppFilter('shortlisted',this)">Shortlisted</button>
-          <button class="tab" onclick="setAppFilter('selected',this)">Selected</button>
-          <button class="tab" onclick="setAppFilter('rejected',this)">Rejected</button>
+      <div class="content">
+
+        <!-- ── DASHBOARD ─────────────────────────────── -->
+        <div class="page active" id="page-dashboard">
+          <div class="welcome">
+            <div class="wb-eyebrow"><i class="fas fa-sparkles"></i> Welcome back, Admin</div>
+            <h1 class="wb-title">Placement <span>Command Centre</span></h1>
+            <p class="wb-desc">Track student progress, manage company drives, and measure placement outcomes — all in
+              one place.</p>
+            <div class="wb-chips">
+              <div class="wb-chip"><i class="fas fa-circle-check"></i>Live Data</div>
+              <div class="wb-chip"><i class="fas fa-bolt"></i>Real-time Updates</div>
+              <div class="wb-chip"><i class="fas fa-shield-halved"></i>DBMS Backed</div>
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="sc sv">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-user-graduate"></i></div>
+              <div class="sc-val" id="s-students">0</div>
+              <div class="sc-lbl">Total Students</div>
+              <div class="sc-sub"><i class="fas fa-circle" style="color:#a78bfa"></i><span id="s-active">Active
+                  batch</span></div>
+            </div>
+            <div class="sc sc2">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-building"></i></div>
+              <div class="sc-val" id="s-companies">0</div>
+              <div class="sc-lbl">Partner Companies</div>
+              <div class="sc-sub"><i class="fas fa-handshake" style="color:var(--c)"></i><span
+                  style="color:var(--c)">Campus partners</span></div>
+            </div>
+            <div class="sc sa">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-briefcase"></i></div>
+              <div class="sc-val" id="s-drives">0</div>
+              <div class="sc-lbl">Placement Drives</div>
+              <div class="sc-sub"><i class="fas fa-calendar" style="color:var(--a)"></i><span
+                  style="color:var(--a)">This season</span></div>
+            </div>
+            <div class="sc sg">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-trophy"></i></div>
+              <div class="sc-val" id="s-placed">0</div>
+              <div class="sc-lbl">Students Placed</div>
+              <div class="sc-sub"><i class="fas fa-arrow-up"></i><span id="s-rate">0% placement rate</span></div>
+            </div>
+          </div>
+
+          <div class="chart-row">
+            <div class="chart-card">
+              <div class="cc-head">
+                <div class="cc-title"><i class="fas fa-chart-bar"></i>Department-wise Placement</div><span
+                  class="cc-pill">This Year</span>
+              </div>
+              <canvas id="deptChart" style="max-height:180px"></canvas>
+            </div>
+            <div class="chart-card">
+              <div class="cc-head">
+                <div class="cc-title"><i class="fas fa-circle-half-stroke"></i>Drive Status</div>
+              </div>
+              <div class="ring-center" style="height:180px">
+                <canvas id="driveChart"></canvas>
+                <div class="ring-label">
+                  <div class="ring-num" id="s-drives2">0</div>
+                  <div class="ring-sub">Total Drives</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec-head">
+            <div class="sec-ttl"><i class="fas fa-medal" style="color:var(--a);margin-right:8px"></i>Recent Placements
+            </div>
+          </div>
+          <div class="tcard">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Company</th>
+                  <th>Role</th>
+                  <th>Package</th>
+                  <th>Offer Date</th>
+                </tr>
+              </thead>
+              <tbody id="recentTbl"></tbody>
+            </table>
+          </div>
         </div>
-      </div>
-      <div class="tcard">
-        <div class="tcard-head"><h3 id="appCount">Applications</h3></div>
-        <table><thead><tr><th>Student</th><th>Company / Drive</th><th>Package</th><th>CGPA</th><th>Status</th><th>Applied</th><th></th></tr></thead>
-        <tbody id="appTbl"></tbody></table>
-      </div>
-    </div>
 
-    <!-- ── PLACEMENTS ─────────────────────────────── -->
-    <div class="page" id="page-placements">
-      <div class="pl-stat-row">
-        <div class="sc sg"><div class="sc-glow"></div><div class="sc-ico"><i class="fas fa-trophy"></i></div><div class="sc-val" id="pl-total">0</div><div class="sc-lbl">Total Placed</div></div>
-        <div class="sc sa"><div class="sc-glow"></div><div class="sc-ico"><i class="fas fa-indian-rupee-sign"></i></div><div class="sc-val" id="pl-avg">0</div><div class="sc-lbl">Avg Package (LPA)</div></div>
-        <div class="sc sc2"><div class="sc-glow"></div><div class="sc-ico"><i class="fas fa-arrow-trend-up"></i></div><div class="sc-val" id="pl-max">0</div><div class="sc-lbl">Highest Package (LPA)</div></div>
-      </div>
-      <div class="filters">
-        <input class="fi fi-stretch" id="plSearch" placeholder="Search placements…" oninput="renderPlacements()">
-        <button class="tb-btn" style="padding:9px 16px;font-size:12px" onclick="openAddPlacement()"><i class="fas fa-plus"></i> Record</button>
-        <button class="btn btn-g" style="padding:9px 14px;font-size:12px;border-radius:10px" onclick="exportCSV()"><i class="fas fa-download"></i> CSV</button>
-      </div>
-      <div class="tcard">
-        <table><thead><tr><th>Student</th><th>Dept</th><th>Company</th><th>Role</th><th>Package</th><th>Offer Date</th><th></th></tr></thead>
-        <tbody id="plTbl"></tbody></table>
-      </div>
-    </div>
+        <!-- ── STUDENTS ───────────────────────────────── -->
+        <div class="page" id="page-students">
+          <div class="filters">
+            <input class="fi fi-stretch" id="stuSearch" placeholder="Search name, email, skills…"
+              oninput="renderStudents()">
+            <select class="fi" id="stuDept" onchange="renderStudents()">
+              <option value="">All Departments</option>
+            </select>
+            <select class="fi" id="stuStatus" onchange="renderStudents()">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="tcard">
+            <div class="tcard-head">
+              <h3 id="stuCount">Students</h3><button class="tb-btn" style="padding:7px 14px;font-size:12px"
+                onclick="openAddStudent()"><i class="fas fa-plus"></i> Add</button>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Department</th>
+                  <th>CGPA</th>
+                  <th>Skills</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="stuTbl"></tbody>
+            </table>
+          </div>
+        </div>
 
-  </div><!-- /content -->
-</div><!-- /main -->
-</div><!-- /layout -->
+        <!-- ── COMPANIES ──────────────────────────────── -->
+        <div class="page" id="page-companies">
+          <div class="filters">
+            <input class="fi fi-stretch" id="coSearch" placeholder="Search companies…" oninput="renderCompanies()">
+            <select class="fi" id="coIndustry" onchange="renderCompanies()">
+              <option value="">All Industries</option>
+            </select>
+          </div>
+          <div class="cards-grid" id="coGrid"></div>
+        </div>
 
-<!-- ══ MODAL ════════════════════════════════════════════════════════════ -->
-<div class="overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-head"><h2 id="modalTitle"></h2><button class="modal-x" onclick="closeModal()">✕</button></div>
-    <div class="modal-body" id="modalBody"></div>
-    <div class="modal-foot">
-      <button class="btn btn-g" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-p" id="modalSave" onclick="submitModal()">Save Changes</button>
+        <!-- ── DRIVES ─────────────────────────────────── -->
+        <div class="page" id="page-drives">
+          <div class="filters">
+            <input class="fi fi-stretch" id="drSearch" placeholder="Search drives…" oninput="renderDrives()">
+            <div class="tabs">
+              <button class="tab on" onclick="setDriveFilter('',this)">All</button>
+              <button class="tab" onclick="setDriveFilter('upcoming',this)">Upcoming</button>
+              <button class="tab" onclick="setDriveFilter('ongoing',this)">Ongoing</button>
+              <button class="tab" onclick="setDriveFilter('completed',this)">Completed</button>
+            </div>
+          </div>
+          <div class="cards-grid" id="drGrid"></div>
+        </div>
+
+        <!-- ── APPLICATIONS ───────────────────────────── -->
+        <div class="page" id="page-applications">
+          <div class="filters">
+            <input class="fi fi-stretch" id="appSearch" placeholder="Search applications…"
+              oninput="renderApplications()">
+            <div class="tabs">
+              <button class="tab on" onclick="setAppFilter('',this)">All</button>
+              <button class="tab" onclick="setAppFilter('applied',this)">Applied</button>
+              <button class="tab" onclick="setAppFilter('shortlisted',this)">Shortlisted</button>
+              <button class="tab" onclick="setAppFilter('selected',this)">Selected</button>
+              <button class="tab" onclick="setAppFilter('rejected',this)">Rejected</button>
+            </div>
+          </div>
+          <div class="tcard">
+            <div class="tcard-head">
+              <h3 id="appCount">Applications</h3>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Company / Drive</th>
+                  <th>Package</th>
+                  <th>CGPA</th>
+                  <th>Status</th>
+                  <th>Applied</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="appTbl"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── PLACEMENTS ─────────────────────────────── -->
+        <div class="page" id="page-placements">
+          <div class="pl-stat-row">
+            <div class="sc sg">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-trophy"></i></div>
+              <div class="sc-val" id="pl-total">0</div>
+              <div class="sc-lbl">Total Placed</div>
+            </div>
+            <div class="sc sa">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-indian-rupee-sign"></i></div>
+              <div class="sc-val" id="pl-avg">0</div>
+              <div class="sc-lbl">Avg Package (LPA)</div>
+            </div>
+            <div class="sc sc2">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-arrow-trend-up"></i></div>
+              <div class="sc-val" id="pl-max">0</div>
+              <div class="sc-lbl">Highest Package (LPA)</div>
+            </div>
+          </div>
+          <div class="filters">
+            <input class="fi fi-stretch" id="plSearch" placeholder="Search placements…" oninput="renderPlacements()">
+            <button class="tb-btn" style="padding:9px 16px;font-size:12px" onclick="openAddPlacement()"><i
+                class="fas fa-plus"></i> Record</button>
+            <button class="btn btn-g" style="padding:9px 14px;font-size:12px;border-radius:10px"
+              onclick="exportCSV()"><i class="fas fa-download"></i> CSV</button>
+          </div>
+          <div class="tcard">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Dept</th>
+                  <th>Company</th>
+                  <th>Role</th>
+                  <th>Package</th>
+                  <th>Offer Date</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="plTbl"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div><!-- /layout -->
+
+  <!-- ══ MODAL ════════════════════════════════════════════════════════════ -->
+  <div class="overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="modalTitle"></h2><button class="modal-x" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot">
+        <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-p" id="modalSave" onclick="submitModal()">Save Changes</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- ══ APPLY OVERLAY ═════════════════════════════════════════════════════ -->
-<div class="overlay" id="applyOverlay" onclick="if(event.target===this)closeApply()">
-  <div class="modal" style="max-width:460px">
-    <div class="modal-head"><h2 id="applyTitle">Apply Students</h2><button class="modal-x" onclick="closeApply()">✕</button></div>
-    <div class="modal-body" id="applyBody"></div>
-    <div class="modal-foot">
-      <button class="btn btn-g" onclick="closeApply()">Close</button>
-      <button class="btn btn-p" onclick="submitApply()"><i class="fas fa-paper-plane"></i> Submit Applications</button>
+  <!-- ══ APPLY OVERLAY ═════════════════════════════════════════════════════ -->
+  <div class="overlay" id="applyOverlay" onclick="if(event.target===this)closeApply()">
+    <div class="modal" style="max-width:460px">
+      <div class="modal-head">
+        <h2 id="applyTitle">Apply Students</h2><button class="modal-x" onclick="closeApply()">✕</button>
+      </div>
+      <div class="modal-body" id="applyBody"></div>
+      <div class="modal-foot">
+        <button class="btn btn-g" onclick="closeApply()">Close</button>
+        <button class="btn btn-p" onclick="submitApply()"><i class="fas fa-paper-plane"></i> Submit
+          Applications</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="toast-wrap" id="toastContainer"></div>
+  <div class="toast-wrap" id="toastContainer"></div>
 
-<!-- ══ SCRIPT ════════════════════════════════════════════════════════════ -->
-<script>
-const S={page:'dashboard',students:[],companies:[],drives:[],applications:[],placements:[],driveFilter:'',appFilter:'',modalFn:null,applyDriveId:null};
-const api={
-  get:u=>fetch(u).then(r=>r.json()),
-  post:(u,d)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(r=>r.json()),
-  put:(u,d)=>fetch(u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).then(r=>r.json()),
-  del:u=>fetch(u,{method:'DELETE'}).then(r=>r.json()),
-};
-const $=id=>document.getElementById(id);
-const fmt=n=>`₹${(+n).toFixed(1)}`;
-const fmtDate=d=>d?new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}):'—';
-const daysLeft=d=>{const x=Math.ceil((new Date(d)-Date.now())/864e5);return x>0?`${x}d left`:'Closed';};
-const initials=n=>n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-const COLORS=['#8b5cf6','#06b6d4','#f59e0b','#10b981','#ec4899','#ef4444','#a78bfa','#14b8a6','#f97316','#3b82f6'];
-const gc=i=>COLORS[i%COLORS.length];
+  <!-- ══ SCRIPT ════════════════════════════════════════════════════════════ -->
+  <script>
+    const S = { page: 'dashboard', students: [], companies: [], drives: [], applications: [], placements: [], driveFilter: '', appFilter: '', modalFn: null, applyDriveId: null };
+    const api = {
+      get: u => fetch(u).then(r => r.json()),
+      post: (u, d) => fetch(u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) }).then(r => r.json()),
+      put: (u, d) => fetch(u, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) }).then(r => r.json()),
+      del: u => fetch(u, { method: 'DELETE' }).then(r => r.json()),
+    };
+    const $ = id => document.getElementById(id);
+    const fmt = n => `₹${(+n).toFixed(1)}`;
+    const fmtDate = d => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+    const daysLeft = d => { const x = Math.ceil((new Date(d) - Date.now()) / 864e5); return x > 0 ? `${x}d left` : 'Closed'; };
+    const initials = n => n.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+    const COLORS = ['#8b5cf6', '#06b6d4', '#f59e0b', '#10b981', '#ec4899', '#ef4444', '#a78bfa', '#14b8a6', '#f97316', '#3b82f6'];
+    const gc = i => COLORS[i % COLORS.length];
 
-const STATUS_BADGE={
-  applied:'bb',shortlisted:'bc',selected:'bg',rejected:'br',
-  upcoming:'bv',ongoing:'ba',completed:'bk',active:'bg',inactive:'br'
-};
-const sbadge=s=>`<span class="badge ${STATUS_BADGE[s]||'bk'}"><i class="fas fa-circle"></i>${s}</span>`;
+    const STATUS_BADGE = {
+      applied: 'bb', shortlisted: 'bc', selected: 'bg', rejected: 'br',
+      upcoming: 'bv', ongoing: 'ba', completed: 'bk', active: 'bg', inactive: 'br'
+    };
+    const sbadge = s => `<span class="badge ${STATUS_BADGE[s] || 'bk'}"><i class="fas fa-circle"></i>${s}</span>`;
 
-function countUp(el,to,dur=900){
-  const from=+(el.textContent)||0,diff=to-from,steps=dur/16;let i=0;
-  const t=setInterval(()=>{i++;el.textContent=Math.round(from+diff*(i/steps));if(i>=steps){el.textContent=to;clearInterval(t);}},16);
-}
-function toast(msg,type='ts'){
-  const el=document.createElement('div');el.className=`toast ${type}`;
-  const icons={ts:'fa-circle-check',te:'fa-circle-exclamation',ti:'fa-circle-info'};
-  el.innerHTML=`<i class="fas ${icons[type]||'fa-circle-info'}"></i>${msg}`;
-  $('toastContainer').appendChild(el);
-  setTimeout(()=>{el.style.animation='toastOut .3s var(--tr) forwards';setTimeout(()=>el.remove(),300);},3000);
-}
+    function countUp(el, to, dur = 900) {
+      const from = +(el.textContent) || 0, diff = to - from, steps = dur / 16; let i = 0;
+      const t = setInterval(() => { i++; el.textContent = Math.round(from + diff * (i / steps)); if (i >= steps) { el.textContent = to; clearInterval(t); } }, 16);
+    }
+    function toast(msg, type = 'ts') {
+      const el = document.createElement('div'); el.className = `toast ${type}`;
+      const icons = { ts: 'fa-circle-check', te: 'fa-circle-exclamation', ti: 'fa-circle-info' };
+      el.innerHTML = `<i class="fas ${icons[type] || 'fa-circle-info'}"></i>${msg}`;
+      $('toastContainer').appendChild(el);
+      setTimeout(() => { el.style.animation = 'toastOut .3s var(--tr) forwards'; setTimeout(() => el.remove(), 300); }, 3000);
+    }
 
-/* Charts */
-let deptChart,driveChart;
-function initCharts(st){
-  if(deptChart)deptChart.destroy();
-  if(driveChart)driveChart.destroy();
-  const dept=st.deptStats||[];
-  Chart.defaults.color='#475569';
-  deptChart=new Chart($('deptChart'),{
-    type:'bar',
-    data:{
-      labels:dept.map(d=>d.department),
-      datasets:[
-        {label:'Total',data:dept.map(d=>d.total_students),backgroundColor:'rgba(139,92,246,0.3)',borderColor:'#8b5cf6',borderWidth:2,borderRadius:8,borderSkipped:false},
-        {label:'Placed',data:dept.map(d=>d.placed_students),backgroundColor:'rgba(16,185,129,0.3)',borderColor:'#10b981',borderWidth:2,borderRadius:8,borderSkipped:false},
-      ]
-    },
-    options:{responsive:true,plugins:{legend:{labels:{color:'#64748b',font:{size:11},boxWidth:10}}},scales:{x:{ticks:{color:'#475569'},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'#475569'},grid:{color:'rgba(255,255,255,0.04)'}}}}
-  });
-  const ds=st.driveStatus||[];
-  driveChart=new Chart($('driveChart'),{
-    type:'doughnut',
-    data:{
-      labels:ds.map(d=>d.status),
-      datasets:[{data:ds.map(d=>d.count),backgroundColor:['rgba(139,92,246,0.85)','rgba(245,158,11,0.85)','rgba(100,116,139,0.55)'],borderWidth:0,hoverOffset:8}]
-    },
-    options:{responsive:true,cutout:'74%',plugins:{legend:{position:'bottom',labels:{color:'#64748b',font:{size:11},boxWidth:9,padding:14}}}}
-  });
-}
+    /* Charts */
+    let deptChart, driveChart;
+    function initCharts(st) {
+      if (deptChart) deptChart.destroy();
+      if (driveChart) driveChart.destroy();
+      const dept = st.deptStats || [];
+      Chart.defaults.color = '#475569';
+      deptChart = new Chart($('deptChart'), {
+        type: 'bar',
+        data: {
+          labels: dept.map(d => d.department),
+          datasets: [
+            { label: 'Total', data: dept.map(d => d.total_students), backgroundColor: 'rgba(139,92,246,0.3)', borderColor: '#8b5cf6', borderWidth: 2, borderRadius: 8, borderSkipped: false },
+            { label: 'Placed', data: dept.map(d => d.placed_students), backgroundColor: 'rgba(16,185,129,0.3)', borderColor: '#10b981', borderWidth: 2, borderRadius: 8, borderSkipped: false },
+          ]
+        },
+        options: { responsive: true, plugins: { legend: { labels: { color: '#64748b', font: { size: 11 }, boxWidth: 10 } } }, scales: { x: { ticks: { color: '#475569' }, grid: { color: 'rgba(255,255,255,0.04)' } }, y: { ticks: { color: '#475569' }, grid: { color: 'rgba(255,255,255,0.04)' } } } }
+      });
+      const ds = st.driveStatus || [];
+      driveChart = new Chart($('driveChart'), {
+        type: 'doughnut',
+        data: {
+          labels: ds.map(d => d.status),
+          datasets: [{ data: ds.map(d => d.count), backgroundColor: ['rgba(139,92,246,0.85)', 'rgba(245,158,11,0.85)', 'rgba(100,116,139,0.55)'], borderWidth: 0, hoverOffset: 8 }]
+        },
+        options: { responsive: true, cutout: '74%', plugins: { legend: { position: 'bottom', labels: { color: '#64748b', font: { size: 11 }, boxWidth: 9, padding: 14 } } } }
+      });
+    }
 
-/* Navigation */
-const PAGES=['dashboard','students','companies','drives','applications','placements'];
-const PTITLE={dashboard:'Dashboard',students:'Students',companies:'Companies',drives:'Placement Drives',applications:'Applications',placements:'Placements'};
-const PADD={students:'Add Student',companies:'Add Company',drives:'Add Drive',applications:'New Application',placements:'Record Placement'};
+    /* Navigation */
+    const PAGES = ['dashboard', 'students', 'companies', 'drives', 'applications', 'placements'];
+    const PTITLE = { dashboard: 'Dashboard', students: 'Students', companies: 'Companies', drives: 'Placement Drives', applications: 'Applications', placements: 'Placements' };
+    const PADD = { students: 'Add Student', companies: 'Add Company', drives: 'Add Drive', applications: 'New Application', placements: 'Record Placement' };
 
-function go(page){
-  S.page=page;
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  $(`page-${page}`).classList.add('active');
-  document.querySelectorAll('.nav-item')[PAGES.indexOf(page)].classList.add('active');
-  $('pageTitle').textContent=PTITLE[page];
-  $('pageSubtitle').textContent='';
-  const btn=$('addBtn');
-  if(page==='dashboard'){btn.style.display='none';}
-  else{btn.style.display='flex';btn.innerHTML=`<i class="fas fa-plus"></i> ${PADD[page]||'Add New'}`;}
-  $('globalSearch').value='';
-  loadPage(page);
-}
+    function go(page) {
+      S.page = page;
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      $(`page-${page}`).classList.add('active');
+      document.querySelectorAll('.nav-item')[PAGES.indexOf(page)].classList.add('active');
+      $('pageTitle').textContent = PTITLE[page];
+      $('pageSubtitle').textContent = '';
+      const btn = $('addBtn');
+      if (page === 'dashboard') { btn.style.display = 'none'; }
+      else { btn.style.display = 'flex'; btn.innerHTML = `<i class="fas fa-plus"></i> ${PADD[page] || 'Add New'}`; }
+      $('globalSearch').value = '';
+      loadPage(page);
+    }
 
-const skelCards = n=>`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px">${Array(n).fill(`<div class="skeleton skel-card"></div>`).join('')}</div>`;
-const skelRows  = n=>`<div style="padding:12px 18px">${Array(n).fill(`<div class="skeleton skel-row"></div>`).join('')}</div>`;
+    const skelCards = n => `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px">${Array(n).fill(`<div class="skeleton skel-card"></div>`).join('')}</div>`;
+    const skelRows = n => `<div style="padding:12px 18px">${Array(n).fill(`<div class="skeleton skel-row"></div>`).join('')}</div>`;
 
-async function loadPage(page){
-  if(page==='dashboard'){await loadDashboard();}
-  else if(page==='students'){
-    $('stuTbl').innerHTML=skelRows(6);
-    S.students=await api.get('/api/students');populateStuFilters();renderStudents();
-  } else if(page==='companies'){
-    $('coGrid').innerHTML=skelCards(4);
-    S.companies=await api.get('/api/companies');populateCoFilters();renderCompanies();
-  } else if(page==='drives'){
-    $('drGrid').innerHTML=skelCards(4);
-    [S.drives,S.companies]=await Promise.all([api.get('/api/drives'),api.get('/api/companies')]);renderDrives();
-  } else if(page==='applications'){
-    $('appTbl').innerHTML=skelRows(6);
-    S.applications=await api.get('/api/applications');renderApplications();
-  } else if(page==='placements'){
-    $('plTbl').innerHTML=skelRows(5);
-    S.placements=await api.get('/api/placements');renderPlacements();renderPlacementStats();
-  }
-}
+    async function loadPage(page) {
+      if (page === 'dashboard') { await loadDashboard(); }
+      else if (page === 'students') {
+        $('stuTbl').innerHTML = skelRows(6);
+        S.students = await api.get('/api/students'); populateStuFilters(); renderStudents();
+      } else if (page === 'companies') {
+        $('coGrid').innerHTML = skelCards(4);
+        S.companies = await api.get('/api/companies'); populateCoFilters(); renderCompanies();
+      } else if (page === 'drives') {
+        $('drGrid').innerHTML = skelCards(4);
+        [S.drives, S.companies] = await Promise.all([api.get('/api/drives'), api.get('/api/companies')]); renderDrives();
+      } else if (page === 'applications') {
+        $('appTbl').innerHTML = skelRows(6);
+        S.applications = await api.get('/api/applications'); renderApplications();
+      } else if (page === 'placements') {
+        $('plTbl').innerHTML = skelRows(5);
+        S.placements = await api.get('/api/placements'); renderPlacements(); renderPlacementStats();
+      }
+    }
 
-/* Dashboard */
-async function loadDashboard(){
-  const st=await api.get('/api/stats');
-  countUp($('s-students'),st.totalStudents);
-  countUp($('s-companies'),st.totalCompanies);
-  countUp($('s-drives'),st.totalDrives);
-  countUp($('s-placed'),st.totalPlacements);
-  $('s-drives2').textContent=st.totalDrives;
-  $('s-active').textContent=`${st.totalStudents} active`;
-  $('s-rate').textContent=`${st.placementRate}% placement rate`;
-  $('recentTbl').innerHTML=(st.recentPlacements||[]).map(p=>`
+    /* Dashboard */
+    async function loadDashboard() {
+      const st = await api.get('/api/stats');
+      countUp($('s-students'), st.totalStudents);
+      countUp($('s-companies'), st.totalCompanies);
+      countUp($('s-drives'), st.totalDrives);
+      countUp($('s-placed'), st.totalPlacements);
+      $('s-drives2').textContent = st.totalDrives;
+      $('s-active').textContent = `${st.totalStudents} active`;
+      $('s-rate').textContent = `${st.placementRate}% placement rate`;
+      $('recentTbl').innerHTML = (st.recentPlacements || []).map(p => `
     <tr>
-      <td><div class="av-wrap"><div class="av" style="background:${gc(p.student_name.charCodeAt(0)%10)}">${initials(p.student_name)}</div><div><div class="cell-name">${p.student_name}</div><div class="cell-muted">${p.department}</div></div></div></td>
+      <td><div class="av-wrap"><div class="av" style="background:${gc(p.student_name.charCodeAt(0) % 10)}">${initials(p.student_name)}</div><div><div class="cell-name">${p.student_name}</div><div class="cell-muted">${p.department}</div></div></div></td>
       <td><span style="font-weight:600">${p.company_name}</span></td>
       <td style="color:var(--t2)">${p.role}</td>
       <td class="pkg">${fmt(p.package)} LPA</td>
       <td style="color:var(--t3)">${fmtDate(p.offer_date)}</td>
-    </tr>`).join('')||`<tr><td colspan="5"><div class="empty"><i class="fas fa-inbox"></i><p>No placements yet</p></div></td></tr>`;
-  setTimeout(()=>initCharts(st),60);
-}
+    </tr>`).join('') || `<tr><td colspan="5"><div class="empty"><i class="fas fa-inbox"></i><p>No placements yet</p></div></td></tr>`;
+      setTimeout(() => initCharts(st), 60);
+    }
 
-/* Students */
-function populateStuFilters(){
-  const depts=[...new Set(S.students.map(s=>s.department))].sort();
-  $('stuDept').innerHTML='<option value="">All Departments</option>'+depts.map(d=>`<option>${d}</option>`).join('');
-}
-function renderStudents(){
-  const q=$('stuSearch').value.toLowerCase(),dept=$('stuDept').value,st=$('stuStatus').value;
-  const data=S.students.filter(s=>(!q||s.name.toLowerCase().includes(q)||s.email.toLowerCase().includes(q)||(s.skills||'').toLowerCase().includes(q))&&(!dept||s.department===dept)&&(!st||s.status===st));
-  $('stuCount').textContent=`${data.length} Students`;
-  $('stuTbl').innerHTML=data.length?data.map(s=>`
+    /* Students */
+    function populateStuFilters() {
+      const depts = [...new Set(S.students.map(s => s.department))].sort();
+      $('stuDept').innerHTML = '<option value="">All Departments</option>' + depts.map(d => `<option>${d}</option>`).join('');
+    }
+    function renderStudents() {
+      const q = $('stuSearch').value.toLowerCase(), dept = $('stuDept').value, st = $('stuStatus').value;
+      const data = S.students.filter(s => (!q || s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q) || (s.skills || '').toLowerCase().includes(q)) && (!dept || s.department === dept) && (!st || s.status === st));
+      $('stuCount').textContent = `${data.length} Students`;
+      $('stuTbl').innerHTML = data.length ? data.map(s => `
     <tr>
-      <td><div class="av-wrap"><div class="av" style="background:${gc(s.id%10)}">${initials(s.name)}</div><div><div class="cell-name">${s.name}</div><div class="cell-muted">${s.email}</div></div></div></td>
+      <td><div class="av-wrap"><div class="av" style="background:${gc(s.id % 10)}">${initials(s.name)}</div><div><div class="cell-name">${s.name}</div><div class="cell-muted">${s.email}</div></div></div></td>
       <td><span class="badge bv">${s.department}</span></td>
-      <td><div class="cgpa-row"><span class="cgpa-num">${s.cgpa}</span><div class="cgpa-track"><div class="cgpa-fill" style="width:${s.cgpa*10}%"></div></div></div></td>
-      <td style="color:var(--t3);font-size:12px">${(s.skills||'').split(',').slice(0,3).join(', ')}</td>
+      <td><div class="cgpa-row"><span class="cgpa-num">${s.cgpa}</span><div class="cgpa-track"><div class="cgpa-fill" style="width:${s.cgpa * 10}%"></div></div></div></td>
+      <td style="color:var(--t3);font-size:12px">${(s.skills || '').split(',').slice(0, 3).join(', ')}</td>
       <td>${sbadge(s.status)}</td>
       <td><div class="act"><button class="ib ib-v" onclick="viewStudent(${s.id})" title="View"><i class="fas fa-eye"></i></button><button class="ib ib-e" onclick="editStudent(${s.id})" title="Edit"><i class="fas fa-pen"></i></button><button class="ib ib-d" onclick="delStudent(${s.id})" title="Delete"><i class="fas fa-trash"></i></button></div></td>
-    </tr>`).join(''):`<tr><td colspan="6"><div class="empty"><i class="fas fa-user-slash"></i><p>No students found</p></div></td></tr>`;
-}
-function openAddStudent(data={}){
-  openModal(data.id?'Edit Student':'Add Student',`
-    <div class="frow"><div class="fg"><label>Full Name *</label><input id="f-name" value="${data.name||''}" placeholder="Arjun Sharma"></div><div class="fg"><label>Email *</label><input id="f-email" type="email" value="${data.email||''}" placeholder="student@college.edu"></div></div>
-    <div class="frow"><div class="fg"><label>Phone</label><input id="f-phone" value="${data.phone||''}" placeholder="+91 98765 43210"></div><div class="fg"><label>Department *</label><select id="f-dept"><option value="">Select</option>${['CSE','ECE','Mechanical','Civil','EEE','IT','Chemical'].map(d=>`<option${data.department===d?' selected':''}>${d}</option>`).join('')}</select></div></div>
-    <div class="frow"><div class="fg"><label>CGPA *</label><input id="f-cgpa" type="number" step="0.1" min="0" max="10" value="${data.cgpa||''}" placeholder="8.5"></div><div class="fg"><label>Year</label><input id="f-year" type="number" min="1" max="4" value="${data.year||4}"></div></div>
-    <div class="fg"><label>Skills (comma-separated)</label><input id="f-skills" value="${data.skills||''}" placeholder="Python, React, ML"></div>
-    ${data.id?`<div class="fg"><label>Status</label><select id="f-status"><option value="active"${data.status==='active'?' selected':''}>Active</option><option value="inactive"${data.status==='inactive'?' selected':''}>Inactive</option></select></div>`:'<div id="f-status" style="display:none"></div>'}
-  `,async()=>{
-    const p={name:$('f-name').value,email:$('f-email').value,phone:$('f-phone').value,department:$('f-dept').value,cgpa:$('f-cgpa').value,year:$('f-year').value,skills:$('f-skills').value,status:$('f-status')&&$('f-status').value?$('f-status').value:'active'};
-    if(!p.name||!p.email||!p.department||!p.cgpa){toast('Fill all required fields','te');return false;}
-    const res=data.id?await api.put(`/api/students/${data.id}`,p):await api.post('/api/students',p);
-    if(res.error){toast(res.error,'te');return false;}
-    toast(data.id?'Student updated!':'Student added!');
-    S.students=await api.get('/api/students');populateStuFilters();renderStudents();
-  });
-}
-async function editStudent(id){openAddStudent(S.students.find(s=>s.id===id));}
-async function viewStudent(id){
-  const s=await api.get(`/api/students/${id}`);
-  openModal(`${s.name}`,`
+    </tr>`).join('') : `<tr><td colspan="6"><div class="empty"><i class="fas fa-user-slash"></i><p>No students found</p></div></td></tr>`;
+    }
+    function openAddStudent(data = {}) {
+      openModal(data.id ? 'Edit Student' : 'Add Student', `
+    <div class="frow"><div class="fg"><label>Full Name *</label><input id="f-name" value="${data.name || ''}" placeholder="Arjun Sharma"></div><div class="fg"><label>Email *</label><input id="f-email" type="email" value="${data.email || ''}" placeholder="student@college.edu"></div></div>
+    <div class="frow"><div class="fg"><label>Phone</label><input id="f-phone" value="${data.phone || ''}" placeholder="+91 98765 43210"></div><div class="fg"><label>Department *</label><select id="f-dept"><option value="">Select</option>${['CSE', 'ECE', 'Mechanical', 'Civil', 'EEE', 'IT', 'Chemical'].map(d => `<option${data.department === d ? ' selected' : ''}>${d}</option>`).join('')}</select></div></div>
+    <div class="frow"><div class="fg"><label>CGPA *</label><input id="f-cgpa" type="number" step="0.1" min="0" max="10" value="${data.cgpa || ''}" placeholder="8.5"></div><div class="fg"><label>Year</label><input id="f-year" type="number" min="1" max="4" value="${data.year || 4}"></div></div>
+    <div class="fg"><label>Skills (comma-separated)</label><input id="f-skills" value="${data.skills || ''}" placeholder="Python, React, ML"></div>
+    ${data.id ? `<div class="fg"><label>Status</label><select id="f-status"><option value="active"${data.status === 'active' ? ' selected' : ''}>Active</option><option value="inactive"${data.status === 'inactive' ? ' selected' : ''}>Inactive</option></select></div>` : '<div id="f-status" style="display:none"></div>'}
+  `, async () => {
+        const p = { name: $('f-name').value, email: $('f-email').value, phone: $('f-phone').value, department: $('f-dept').value, cgpa: $('f-cgpa').value, year: $('f-year').value, skills: $('f-skills').value, status: $('f-status') && $('f-status').value ? $('f-status').value : 'active' };
+        if (!p.name || !p.email || !p.department || !p.cgpa) { toast('Fill all required fields', 'te'); return false; }
+        const res = data.id ? await api.put(`/api/students/${data.id}`, p) : await api.post('/api/students', p);
+        if (res.error) { toast(res.error, 'te'); return false; }
+        toast(data.id ? 'Student updated!' : 'Student added!');
+        S.students = await api.get('/api/students'); populateStuFilters(); renderStudents();
+      });
+    }
+    async function editStudent(id) { openAddStudent(S.students.find(s => s.id === id)); }
+    async function viewStudent(id) {
+      const s = await api.get(`/api/students/${id}`);
+      openModal(`${s.name}`, `
     <div style="text-align:center;margin-bottom:22px">
-      <div class="av" style="width:64px;height:64px;font-size:22px;background:${gc(s.id%10)};margin:0 auto 12px;border-radius:50%">${initials(s.name)}</div>
+      <div class="av" style="width:64px;height:64px;font-size:22px;background:${gc(s.id % 10)};margin:0 auto 12px;border-radius:50%">${initials(s.name)}</div>
       <div style="font-size:17px;font-weight:700">${s.name}</div>
       <div style="color:var(--t3);font-size:13px;margin-top:4px">${s.department} · ${s.email}</div>
       <div style="margin-top:10px">${sbadge(s.status)}</div>
@@ -872,33 +2649,33 @@ async function viewStudent(id){
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center"><div style="font-size:26px;font-weight:800;color:var(--c)">${s.cgpa}</div><div style="font-size:10px;color:var(--t3);margin-top:3px">CGPA</div></div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center"><div style="font-size:26px;font-weight:800;color:var(--a)">${s.year}</div><div style="font-size:10px;color:var(--t3);margin-top:3px">Year</div></div>
     </div>
-    ${s.skills?`<div style="margin-bottom:16px"><div style="font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Skills</div><div style="display:flex;flex-wrap:wrap;gap:6px">${s.skills.split(',').map(k=>`<span class="badge bv">${k.trim()}</span>`).join('')}</div></div>`:''}
-    ${s.placement?`<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:14px;margin-bottom:14px"><div style="color:var(--g);font-weight:700;margin-bottom:4px"><i class="fas fa-trophy"></i> Placed at ${s.placement.company_name}</div><div style="font-size:13px;color:var(--t2)">${s.placement.role} · ${fmt(s.placement.package)} LPA</div></div>`:''}
+    ${s.skills ? `<div style="margin-bottom:16px"><div style="font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Skills</div><div style="display:flex;flex-wrap:wrap;gap:6px">${s.skills.split(',').map(k => `<span class="badge bv">${k.trim()}</span>`).join('')}</div></div>` : ''}
+    ${s.placement ? `<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.25);border-radius:12px;padding:14px;margin-bottom:14px"><div style="color:var(--g);font-weight:700;margin-bottom:4px"><i class="fas fa-trophy"></i> Placed at ${s.placement.company_name}</div><div style="font-size:13px;color:var(--t2)">${s.placement.role} · ${fmt(s.placement.package)} LPA</div></div>` : ''}
     <div style="font-size:10px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">Applications (${s.applications.length})</div>
-    ${s.applications.map(a=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;font-size:13px"><div><div style="font-weight:600">${a.company_name}</div><div style="color:var(--t3);font-size:11px">${a.drive_title}</div></div>${sbadge(a.status)}</div>`).join('')||'<div style="color:var(--t3);font-size:13px;text-align:center;padding:16px 0">No applications yet</div>'}
-  `,null);
-  $('modalSave').style.display='none';
-}
-async function delStudent(id){if(!confirm('Delete this student?'))return;await api.del(`/api/students/${id}`);toast('Student removed','te');S.students=await api.get('/api/students');renderStudents();}
+    ${s.applications.map(a => `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;margin-bottom:6px;font-size:13px"><div><div style="font-weight:600">${a.company_name}</div><div style="color:var(--t3);font-size:11px">${a.drive_title}</div></div>${sbadge(a.status)}</div>`).join('') || '<div style="color:var(--t3);font-size:13px;text-align:center;padding:16px 0">No applications yet</div>'}
+  `, null);
+      $('modalSave').style.display = 'none';
+    }
+    async function delStudent(id) { if (!confirm('Delete this student?')) return; await api.del(`/api/students/${id}`); toast('Student removed', 'te'); S.students = await api.get('/api/students'); renderStudents(); }
 
-/* Companies */
-function populateCoFilters(){
-  const inds=[...new Set(S.companies.map(c=>c.industry).filter(Boolean))].sort();
-  $('coIndustry').innerHTML='<option value="">All Industries</option>'+inds.map(i=>`<option>${i}</option>`).join('');
-}
-function renderCompanies(){
-  const q=$('coSearch').value.toLowerCase(),ind=$('coIndustry').value;
-  const data=S.companies.filter(c=>(!q||c.name.toLowerCase().includes(q)||(c.industry||'').toLowerCase().includes(q))&&(!ind||c.industry===ind));
-  $('coGrid').innerHTML=data.length?data.map((c,i)=>`
+    /* Companies */
+    function populateCoFilters() {
+      const inds = [...new Set(S.companies.map(c => c.industry).filter(Boolean))].sort();
+      $('coIndustry').innerHTML = '<option value="">All Industries</option>' + inds.map(i => `<option>${i}</option>`).join('');
+    }
+    function renderCompanies() {
+      const q = $('coSearch').value.toLowerCase(), ind = $('coIndustry').value;
+      const data = S.companies.filter(c => (!q || c.name.toLowerCase().includes(q) || (c.industry || '').toLowerCase().includes(q)) && (!ind || c.industry === ind));
+      $('coGrid').innerHTML = data.length ? data.map((c, i) => `
     <div class="co-card">
-      <div class="co-banner" style="background:linear-gradient(135deg,${gc(i)},${gc(i+2)})">
+      <div class="co-banner" style="background:linear-gradient(135deg,${gc(i)},${gc(i + 2)})">
         <div class="co-ava" style="background:rgba(0,0,0,.3)">${initials(c.name)}</div>
       </div>
       <div class="co-body">
         <div class="co-name">${c.name}</div>
-        <div class="co-ind">${c.industry||'—'}</div>
-        ${c.description?`<p class="co-desc">${c.description.slice(0,80)}…</p>`:''}
-        ${c.website?`<a href="https://${c.website}" target="_blank" class="co-site"><i class="fas fa-external-link-alt"></i>${c.website}</a>`:''}
+        <div class="co-ind">${c.industry || '—'}</div>
+        ${c.description ? `<p class="co-desc">${c.description.slice(0, 80)}…</p>` : ''}
+        ${c.website ? `<a href="https://${c.website}" target="_blank" class="co-site"><i class="fas fa-external-link-alt"></i>${c.website}</a>` : ''}
         <div class="co-stats">
           <div class="co-stat"><div class="co-stat-n" style="color:#a78bfa">${c.total_drives}</div><div class="co-stat-l">Drives</div></div>
           <div class="co-stat"><div class="co-stat-n" style="color:var(--g)">${c.total_placed}</div><div class="co-stat-l">Placed</div></div>
@@ -908,32 +2685,32 @@ function renderCompanies(){
           <button class="co-d" onclick="delCompany(${c.id})"><i class="fas fa-trash"></i></button>
         </div>
       </div>
-    </div>`).join(''):`<div class="empty" style="grid-column:1/-1"><i class="fas fa-building"></i><p>No companies found</p></div>`;
-}
-function openAddCompany(data={}){
-  openModal(data.id?'Edit Company':'Add Company',`
-    <div class="fg"><label>Company Name *</label><input id="f-cname" value="${data.name||''}" placeholder="Google Inc."></div>
-    <div class="frow"><div class="fg"><label>Email</label><input id="f-cemail" value="${data.email||''}" placeholder="campus@company.com"></div><div class="fg"><label>Website</label><input id="f-cweb" value="${data.website||''}" placeholder="company.com"></div></div>
-    <div class="fg"><label>Industry</label><select id="f-cind"><option value="">Select</option>${['Technology','IT Services','E-Commerce / Cloud','Consulting','Finance','Manufacturing','Healthcare','FMCG'].map(ind=>`<option${data.industry===ind?' selected':''}>${ind}</option>`).join('')}</select></div>
-    <div class="fg"><label>Description</label><textarea id="f-cdesc" placeholder="Brief description…">${data.description||''}</textarea></div>
-  `,async()=>{
-    const p={name:$('f-cname').value,email:$('f-cemail').value,website:$('f-cweb').value,industry:$('f-cind').value,description:$('f-cdesc').value};
-    if(!p.name){toast('Company name required','te');return false;}
-    const res=data.id?await api.put(`/api/companies/${data.id}`,p):await api.post('/api/companies',p);
-    if(res.error){toast(res.error,'te');return false;}
-    toast(data.id?'Company updated!':'Company added!');
-    S.companies=await api.get('/api/companies');populateCoFilters();renderCompanies();
-  });
-}
-function editCompany(id){openAddCompany(S.companies.find(c=>c.id===id));}
-async function delCompany(id){if(!confirm('Delete company and all its drives?'))return;await api.del(`/api/companies/${id}`);toast('Company deleted','te');S.companies=await api.get('/api/companies');renderCompanies();}
+    </div>`).join('') : `<div class="empty" style="grid-column:1/-1"><i class="fas fa-building"></i><p>No companies found</p></div>`;
+    }
+    function openAddCompany(data = {}) {
+      openModal(data.id ? 'Edit Company' : 'Add Company', `
+    <div class="fg"><label>Company Name *</label><input id="f-cname" value="${data.name || ''}" placeholder="Google Inc."></div>
+    <div class="frow"><div class="fg"><label>Email</label><input id="f-cemail" value="${data.email || ''}" placeholder="campus@company.com"></div><div class="fg"><label>Website</label><input id="f-cweb" value="${data.website || ''}" placeholder="company.com"></div></div>
+    <div class="fg"><label>Industry</label><select id="f-cind"><option value="">Select</option>${['Technology', 'IT Services', 'E-Commerce / Cloud', 'Consulting', 'Finance', 'Manufacturing', 'Healthcare', 'FMCG'].map(ind => `<option${data.industry === ind ? ' selected' : ''}>${ind}</option>`).join('')}</select></div>
+    <div class="fg"><label>Description</label><textarea id="f-cdesc" placeholder="Brief description…">${data.description || ''}</textarea></div>
+  `, async () => {
+        const p = { name: $('f-cname').value, email: $('f-cemail').value, website: $('f-cweb').value, industry: $('f-cind').value, description: $('f-cdesc').value };
+        if (!p.name) { toast('Company name required', 'te'); return false; }
+        const res = data.id ? await api.put(`/api/companies/${data.id}`, p) : await api.post('/api/companies', p);
+        if (res.error) { toast(res.error, 'te'); return false; }
+        toast(data.id ? 'Company updated!' : 'Company added!');
+        S.companies = await api.get('/api/companies'); populateCoFilters(); renderCompanies();
+      });
+    }
+    function editCompany(id) { openAddCompany(S.companies.find(c => c.id === id)); }
+    async function delCompany(id) { if (!confirm('Delete company and all its drives?')) return; await api.del(`/api/companies/${id}`); toast('Company deleted', 'te'); S.companies = await api.get('/api/companies'); renderCompanies(); }
 
-/* Drives */
-function setDriveFilter(f,btn){S.driveFilter=f;document.querySelectorAll('#page-drives .tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderDrives();}
-function renderDrives(){
-  const q=$('drSearch').value.toLowerCase();
-  const data=S.drives.filter(d=>(!q||d.title.toLowerCase().includes(q)||d.company_name.toLowerCase().includes(q))&&(!S.driveFilter||d.status===S.driveFilter));
-  $('drGrid').innerHTML=data.length?data.map(d=>`
+    /* Drives */
+    function setDriveFilter(f, btn) { S.driveFilter = f; document.querySelectorAll('#page-drives .tab').forEach(b => b.classList.remove('on')); btn.classList.add('on'); renderDrives(); }
+    function renderDrives() {
+      const q = $('drSearch').value.toLowerCase();
+      const data = S.drives.filter(d => (!q || d.title.toLowerCase().includes(q) || d.company_name.toLowerCase().includes(q)) && (!S.driveFilter || d.status === S.driveFilter));
+      $('drGrid').innerHTML = data.length ? data.map(d => `
     <div class="drive-card ${d.status}">
       <div class="dc-head">
         <div class="dc-hc1"></div><div class="dc-hc2"></div>
@@ -945,164 +2722,165 @@ function renderDrives(){
         <div class="dc-role">${d.role}</div>
         <div class="dc-pkg">${fmt(d.package_min)} – ${fmt(d.package_max)} <span>LPA</span></div>
         <div class="dc-chips">
-          <div class="dc-chip"><i class="fas fa-location-dot"></i>${d.location||'—'}</div>
+          <div class="dc-chip"><i class="fas fa-location-dot"></i>${d.location || '—'}</div>
           <div class="dc-chip"><i class="fas fa-calendar-days"></i>${fmtDate(d.drive_date)}</div>
           <div class="dc-chip"><i class="fas fa-star"></i>Min ${d.min_cgpa} CGPA</div>
           <div class="dc-chip"><i class="fas fa-users"></i>${d.application_count} applied</div>
-          ${d.deadline?`<div class="dc-chip"><i class="fas fa-clock"></i>${daysLeft(d.deadline)}</div>`:''}
+          ${d.deadline ? `<div class="dc-chip"><i class="fas fa-clock"></i>${daysLeft(d.deadline)}</div>` : ''}
         </div>
         <div style="font-size:11px;color:var(--t3);margin-bottom:4px"><i class="fas fa-graduation-cap" style="color:#a78bfa"></i> ${d.eligible_departments} · ${d.positions} positions</div>
         <div class="dc-footer">
-          <button class="dc-apply" onclick="openApply(${d.id},'${d.title.replace(/'/g,"\\'")}')"><i class="fas fa-user-plus"></i> Apply Students</button>
+          <button class="dc-apply" onclick="openApply(${d.id},'${d.title.replace(/'/g, "\\'")}')"><i class="fas fa-user-plus"></i> Apply Students</button>
           <button class="dc-edit" onclick="editDrive(${d.id})"><i class="fas fa-pen"></i></button>
           <button class="dc-del" onclick="delDrive(${d.id})"><i class="fas fa-trash"></i></button>
         </div>
       </div>
-    </div>`).join(''):`<div class="empty" style="grid-column:1/-1"><i class="fas fa-briefcase"></i><p>No drives found</p></div>`;
-}
-function openAddDrive(data={}){
-  openModal(data.id?'Edit Drive':'Add Drive',`
-    <div class="frow"><div class="fg"><label>Company *</label><select id="f-dco"><option value="">Select</option>${S.companies.map(c=>`<option value="${c.id}"${data.company_id==c.id?' selected':''}>${c.name}</option>`).join('')}</select></div><div class="fg"><label>Drive Title *</label><input id="f-dtitle" value="${data.title||''}" placeholder="Google SWE 2024"></div></div>
-    <div class="frow"><div class="fg"><label>Role</label><input id="f-drole" value="${data.role||''}" placeholder="Software Engineer"></div><div class="fg"><label>Location</label><input id="f-dloc" value="${data.location||''}" placeholder="Bangalore"></div></div>
-    <div class="frow"><div class="fg"><label>Min Package (LPA)</label><input id="f-dpmin" type="number" value="${data.package_min||''}"></div><div class="fg"><label>Max Package (LPA)</label><input id="f-dpmax" type="number" value="${data.package_max||''}"></div></div>
-    <div class="frow"><div class="fg"><label>Drive Date</label><input id="f-ddate" type="date" value="${data.drive_date||''}"></div><div class="fg"><label>Deadline</label><input id="f-ddl" type="date" value="${data.deadline||''}"></div></div>
-    <div class="frow"><div class="fg"><label>Min CGPA</label><input id="f-dcgpa" type="number" step="0.1" value="${data.min_cgpa||0}"></div><div class="fg"><label>Positions</label><input id="f-dpos" type="number" value="${data.positions||1}"></div></div>
-    <div class="frow"><div class="fg"><label>Eligible Depts</label><input id="f-ddepts" value="${data.eligible_departments||'ALL'}" placeholder="ALL or CSE,ECE"></div><div class="fg"><label>Status</label><select id="f-dstatus"><option value="upcoming"${data.status==='upcoming'?' selected':''}>Upcoming</option><option value="ongoing"${data.status==='ongoing'?' selected':''}>Ongoing</option><option value="completed"${data.status==='completed'?' selected':''}>Completed</option></select></div></div>
-    <div class="fg"><label>Description</label><textarea id="f-ddesc">${data.description||''}</textarea></div>
-  `,async()=>{
-    const p={company_id:$('f-dco').value,title:$('f-dtitle').value,role:$('f-drole').value,location:$('f-dloc').value,package_min:$('f-dpmin').value,package_max:$('f-dpmax').value,drive_date:$('f-ddate').value,deadline:$('f-ddl').value,min_cgpa:$('f-dcgpa').value,positions:$('f-dpos').value,eligible_departments:$('f-ddepts').value,status:$('f-dstatus').value,description:$('f-ddesc').value};
-    if(!p.company_id||!p.title){toast('Company and title required','te');return false;}
-    const res=data.id?await api.put(`/api/drives/${data.id}`,p):await api.post('/api/drives',p);
-    if(res.error){toast(res.error,'te');return false;}
-    toast(data.id?'Drive updated!':'Drive added!');
-    S.drives=await api.get('/api/drives');renderDrives();
-  });
-}
-function editDrive(id){openAddDrive(S.drives.find(d=>d.id===id));}
-async function delDrive(id){if(!confirm('Delete this drive?'))return;await api.del(`/api/drives/${id}`);toast('Drive deleted','te');S.drives=await api.get('/api/drives');renderDrives();}
+    </div>`).join('') : `<div class="empty" style="grid-column:1/-1"><i class="fas fa-briefcase"></i><p>No drives found</p></div>`;
+    }
+    function openAddDrive(data = {}) {
+      openModal(data.id ? 'Edit Drive' : 'Add Drive', `
+    <div class="frow"><div class="fg"><label>Company *</label><select id="f-dco"><option value="">Select</option>${S.companies.map(c => `<option value="${c.id}"${data.company_id == c.id ? ' selected' : ''}>${c.name}</option>`).join('')}</select></div><div class="fg"><label>Drive Title *</label><input id="f-dtitle" value="${data.title || ''}" placeholder="Google SWE 2024"></div></div>
+    <div class="frow"><div class="fg"><label>Role</label><input id="f-drole" value="${data.role || ''}" placeholder="Software Engineer"></div><div class="fg"><label>Location</label><input id="f-dloc" value="${data.location || ''}" placeholder="Bangalore"></div></div>
+    <div class="frow"><div class="fg"><label>Min Package (LPA)</label><input id="f-dpmin" type="number" value="${data.package_min || ''}"></div><div class="fg"><label>Max Package (LPA)</label><input id="f-dpmax" type="number" value="${data.package_max || ''}"></div></div>
+    <div class="frow"><div class="fg"><label>Drive Date</label><input id="f-ddate" type="date" value="${data.drive_date || ''}"></div><div class="fg"><label>Deadline</label><input id="f-ddl" type="date" value="${data.deadline || ''}"></div></div>
+    <div class="frow"><div class="fg"><label>Min CGPA</label><input id="f-dcgpa" type="number" step="0.1" value="${data.min_cgpa || 0}"></div><div class="fg"><label>Positions</label><input id="f-dpos" type="number" value="${data.positions || 1}"></div></div>
+    <div class="frow"><div class="fg"><label>Eligible Depts</label><input id="f-ddepts" value="${data.eligible_departments || 'ALL'}" placeholder="ALL or CSE,ECE"></div><div class="fg"><label>Status</label><select id="f-dstatus"><option value="upcoming"${data.status === 'upcoming' ? ' selected' : ''}>Upcoming</option><option value="ongoing"${data.status === 'ongoing' ? ' selected' : ''}>Ongoing</option><option value="completed"${data.status === 'completed' ? ' selected' : ''}>Completed</option></select></div></div>
+    <div class="fg"><label>Description</label><textarea id="f-ddesc">${data.description || ''}</textarea></div>
+  `, async () => {
+        const p = { company_id: $('f-dco').value, title: $('f-dtitle').value, role: $('f-drole').value, location: $('f-dloc').value, package_min: $('f-dpmin').value, package_max: $('f-dpmax').value, drive_date: $('f-ddate').value, deadline: $('f-ddl').value, min_cgpa: $('f-dcgpa').value, positions: $('f-dpos').value, eligible_departments: $('f-ddepts').value, status: $('f-dstatus').value, description: $('f-ddesc').value };
+        if (!p.company_id || !p.title) { toast('Company and title required', 'te'); return false; }
+        const res = data.id ? await api.put(`/api/drives/${data.id}`, p) : await api.post('/api/drives', p);
+        if (res.error) { toast(res.error, 'te'); return false; }
+        toast(data.id ? 'Drive updated!' : 'Drive added!');
+        S.drives = await api.get('/api/drives'); renderDrives();
+      });
+    }
+    function editDrive(id) { openAddDrive(S.drives.find(d => d.id === id)); }
+    async function delDrive(id) { if (!confirm('Delete this drive?')) return; await api.del(`/api/drives/${id}`); toast('Drive deleted', 'te'); S.drives = await api.get('/api/drives'); renderDrives(); }
 
-/* Apply students */
-async function openApply(driveId,driveTitle){
-  S.applyDriveId=driveId;
-  const eligible=await api.get(`/api/drives/${driveId}/eligible`);
-  $('applyTitle').textContent=`Apply: ${driveTitle}`;
-  $('applyBody').innerHTML=eligible.length?`
+    /* Apply students */
+    async function openApply(driveId, driveTitle) {
+      S.applyDriveId = driveId;
+      const eligible = await api.get(`/api/drives/${driveId}/eligible`);
+      $('applyTitle').textContent = `Apply: ${driveTitle}`;
+      $('applyBody').innerHTML = eligible.length ? `
     <p style="font-size:12px;color:var(--t3);margin-bottom:14px">${eligible.length} eligible student(s) — select to apply</p>
     <div style="max-height:320px;overflow-y:auto">
-      ${eligible.map(s=>`
+      ${eligible.map(s => `
         <label class="apply-stu-item">
           <input type="checkbox" value="${s.id}">
-          <div class="av" style="width:32px;height:32px;font-size:11px;background:${gc(s.id%10)};border-radius:50%">${initials(s.name)}</div>
+          <div class="av" style="width:32px;height:32px;font-size:11px;background:${gc(s.id % 10)};border-radius:50%">${initials(s.name)}</div>
           <div style="flex:1"><div style="font-size:13px;font-weight:600">${s.name}</div><div style="font-size:11px;color:var(--t3)">${s.department} · CGPA ${s.cgpa}</div></div>
         </label>`).join('')}
-    </div>`:`<div class="empty"><i class="fas fa-user-check"></i><p>No eligible students found</p></div>`;
-  $('applyOverlay').classList.add('open');
-}
-async function submitApply(){
-  const checked=[...$('applyBody').querySelectorAll('input:checked')].map(c=>+c.value);
-  if(!checked.length){toast('Select at least one student','te');return;}
-  let ok=0;for(const sid of checked){const r=await api.post('/api/applications',{student_id:sid,drive_id:S.applyDriveId});if(!r.error)ok++;}
-  toast(`${ok} application(s) submitted!`);S.drives=await api.get('/api/drives');renderDrives();closeApply();
-}
-function closeApply(){$('applyOverlay').classList.remove('open');}
+    </div>`: `<div class="empty"><i class="fas fa-user-check"></i><p>No eligible students found</p></div>`;
+      $('applyOverlay').classList.add('open');
+    }
+    async function submitApply() {
+      const checked = [...$('applyBody').querySelectorAll('input:checked')].map(c => +c.value);
+      if (!checked.length) { toast('Select at least one student', 'te'); return; }
+      let ok = 0; for (const sid of checked) { const r = await api.post('/api/applications', { student_id: sid, drive_id: S.applyDriveId }); if (!r.error) ok++; }
+      toast(`${ok} application(s) submitted!`); S.drives = await api.get('/api/drives'); renderDrives(); closeApply();
+    }
+    function closeApply() { $('applyOverlay').classList.remove('open'); }
 
-/* Applications */
-function setAppFilter(f,btn){S.appFilter=f;document.querySelectorAll('#page-applications .tab').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderApplications();}
-function renderApplications(){
-  const q=$('appSearch').value.toLowerCase();
-  const data=S.applications.filter(a=>(!q||a.student_name.toLowerCase().includes(q)||a.company_name.toLowerCase().includes(q))&&(!S.appFilter||a.status===S.appFilter));
-  $('appCount').textContent=`${data.length} Applications`;
-  $('appTbl').innerHTML=data.length?data.map(a=>`
+    /* Applications */
+    function setAppFilter(f, btn) { S.appFilter = f; document.querySelectorAll('#page-applications .tab').forEach(b => b.classList.remove('on')); btn.classList.add('on'); renderApplications(); }
+    function renderApplications() {
+      const q = $('appSearch').value.toLowerCase();
+      const data = S.applications.filter(a => (!q || a.student_name.toLowerCase().includes(q) || a.company_name.toLowerCase().includes(q)) && (!S.appFilter || a.status === S.appFilter));
+      $('appCount').textContent = `${data.length} Applications`;
+      $('appTbl').innerHTML = data.length ? data.map(a => `
     <tr>
-      <td><div class="av-wrap"><div class="av" style="background:${gc(a.student_id%10)}">${initials(a.student_name)}</div><div><div class="cell-name">${a.student_name}</div><div class="cell-muted">${a.department}</div></div></div></td>
+      <td><div class="av-wrap"><div class="av" style="background:${gc(a.student_id % 10)}">${initials(a.student_name)}</div><div><div class="cell-name">${a.student_name}</div><div class="cell-muted">${a.department}</div></div></div></td>
       <td><div class="cell-name">${a.company_name}</div><div class="cell-muted">${a.drive_title}</div></td>
       <td class="pkg" style="font-size:13px">${fmt(a.package_min)}–${fmt(a.package_max)}</td>
       <td style="font-weight:700">${a.cgpa}</td>
-      <td><select class="st-sel" onchange="updateAppStatus(${a.id},this.value)">${['applied','shortlisted','selected','rejected'].map(s=>`<option value="${s}"${a.status===s?' selected':''}>${s}</option>`).join('')}</select></td>
+      <td><select class="st-sel" onchange="updateAppStatus(${a.id},this.value)">${['applied', 'shortlisted', 'selected', 'rejected'].map(s => `<option value="${s}"${a.status === s ? ' selected' : ''}>${s}</option>`).join('')}</select></td>
       <td style="color:var(--t3);font-size:12px">${fmtDate(a.applied_at)}</td>
       <td><button class="ib ib-d" onclick="delApp(${a.id})"><i class="fas fa-trash"></i></button></td>
-    </tr>`).join(''):`<tr><td colspan="7"><div class="empty"><i class="fas fa-file-alt"></i><p>No applications</p></div></td></tr>`;
-}
-async function updateAppStatus(id,status){await api.put(`/api/applications/${id}`,{status});const a=S.applications.find(x=>x.id===id);if(a)a.status=status;toast(`Status → ${status}`);}
-async function delApp(id){if(!confirm('Remove application?'))return;await api.del(`/api/applications/${id}`);toast('Removed','te');S.applications=await api.get('/api/applications');renderApplications();}
+    </tr>`).join('') : `<tr><td colspan="7"><div class="empty"><i class="fas fa-file-alt"></i><p>No applications</p></div></td></tr>`;
+    }
+    async function updateAppStatus(id, status) { await api.put(`/api/applications/${id}`, { status }); const a = S.applications.find(x => x.id === id); if (a) a.status = status; toast(`Status → ${status}`); }
+    async function delApp(id) { if (!confirm('Remove application?')) return; await api.del(`/api/applications/${id}`); toast('Removed', 'te'); S.applications = await api.get('/api/applications'); renderApplications(); }
 
-/* Placements */
-function renderPlacementStats(){
-  const p=S.placements.map(x=>x.package);
-  countUp($('pl-total'),S.placements.length);
-  $('pl-avg').textContent=p.length?(p.reduce((a,b)=>a+b,0)/p.length).toFixed(1):0;
-  $('pl-max').textContent=p.length?Math.max(...p).toFixed(1):0;
-}
-function renderPlacements(){
-  const q=$('plSearch').value.toLowerCase();
-  const data=S.placements.filter(p=>!q||p.student_name.toLowerCase().includes(q)||p.company_name.toLowerCase().includes(q));
-  $('plTbl').innerHTML=data.length?data.map(p=>`
+    /* Placements */
+    function renderPlacementStats() {
+      const p = S.placements.map(x => x.package);
+      countUp($('pl-total'), S.placements.length);
+      $('pl-avg').textContent = p.length ? (p.reduce((a, b) => a + b, 0) / p.length).toFixed(1) : 0;
+      $('pl-max').textContent = p.length ? Math.max(...p).toFixed(1) : 0;
+    }
+    function renderPlacements() {
+      const q = $('plSearch').value.toLowerCase();
+      const data = S.placements.filter(p => !q || p.student_name.toLowerCase().includes(q) || p.company_name.toLowerCase().includes(q));
+      $('plTbl').innerHTML = data.length ? data.map(p => `
     <tr>
-      <td><div class="av-wrap"><div class="av" style="background:${gc(p.student_id%10)}">${initials(p.student_name)}</div><div><div class="cell-name">${p.student_name}</div><div class="cell-muted">${p.student_email}</div></div></div></td>
+      <td><div class="av-wrap"><div class="av" style="background:${gc(p.student_id % 10)}">${initials(p.student_name)}</div><div><div class="cell-name">${p.student_name}</div><div class="cell-muted">${p.student_email}</div></div></div></td>
       <td><span class="badge bv">${p.department}</span></td>
       <td style="font-weight:600">${p.company_name}</td>
       <td style="color:var(--t3)">${p.role}</td>
       <td class="pkg">${fmt(p.package)} LPA</td>
       <td style="color:var(--t3);font-size:12px">${fmtDate(p.offer_date)}</td>
       <td><button class="ib ib-d" onclick="delPlacement(${p.id})"><i class="fas fa-trash"></i></button></td>
-    </tr>`).join(''):`<tr><td colspan="7"><div class="empty"><i class="fas fa-trophy"></i><p>No placements yet</p></div></td></tr>`;
-}
-async function openAddPlacement(){
-  const [students,drives]=await Promise.all([api.get('/api/students'),api.get('/api/drives')]);
-  const placed=new Set(S.placements.map(p=>p.student_id));
-  const unplaced=students.filter(s=>!placed.has(s.id)&&s.status==='active');
-  openModal('Record Placement',`
-    <div class="fg"><label>Student *</label><select id="f-pstu"><option value="">Select</option>${unplaced.map(s=>`<option value="${s.id}">${s.name} (${s.department}, ${s.cgpa})</option>`).join('')}</select></div>
-    <div class="fg"><label>Drive *</label><select id="f-pdrv"><option value="">Select</option>${drives.filter(d=>d.status!=='upcoming').map(d=>`<option value="${d.id}">${d.company_name} — ${d.title}</option>`).join('')}</select></div>
-    <div class="frow"><div class="fg"><label>Package (LPA) *</label><input id="f-ppkg" type="number" step="0.1" placeholder="18.5"></div><div class="fg"><label>Offer Date</label><input id="f-pod" type="date" value="${new Date().toISOString().slice(0,10)}"></div></div>
+    </tr>`).join('') : `<tr><td colspan="7"><div class="empty"><i class="fas fa-trophy"></i><p>No placements yet</p></div></td></tr>`;
+    }
+    async function openAddPlacement() {
+      const [students, drives] = await Promise.all([api.get('/api/students'), api.get('/api/drives')]);
+      const placed = new Set(S.placements.map(p => p.student_id));
+      const unplaced = students.filter(s => !placed.has(s.id) && s.status === 'active');
+      openModal('Record Placement', `
+    <div class="fg"><label>Student *</label><select id="f-pstu"><option value="">Select</option>${unplaced.map(s => `<option value="${s.id}">${s.name} (${s.department}, ${s.cgpa})</option>`).join('')}</select></div>
+    <div class="fg"><label>Drive *</label><select id="f-pdrv"><option value="">Select</option>${drives.filter(d => d.status !== 'upcoming').map(d => `<option value="${d.id}">${d.company_name} — ${d.title}</option>`).join('')}</select></div>
+    <div class="frow"><div class="fg"><label>Package (LPA) *</label><input id="f-ppkg" type="number" step="0.1" placeholder="18.5"></div><div class="fg"><label>Offer Date</label><input id="f-pod" type="date" value="${new Date().toISOString().slice(0, 10)}"></div></div>
     <div class="fg"><label>Joining Date</label><input id="f-pjd" type="date"></div>
-  `,async()=>{
-    const p={student_id:$('f-pstu').value,drive_id:$('f-pdrv').value,package:$('f-ppkg').value,offer_date:$('f-pod').value,joining_date:$('f-pjd').value};
-    if(!p.student_id||!p.drive_id||!p.package){toast('Fill all required fields','te');return false;}
-    const res=await api.post('/api/placements',p);
-    if(res.error){toast(res.error,'te');return false;}
-    toast('Placement recorded!');S.placements=await api.get('/api/placements');renderPlacements();renderPlacementStats();
-  });
-}
-async function delPlacement(id){if(!confirm('Remove placement?'))return;await api.del(`/api/placements/${id}`);toast('Removed','te');S.placements=await api.get('/api/placements');renderPlacements();renderPlacementStats();}
-function exportCSV(){
-  const h=['Name','Dept','Email','Company','Role','Package','Offer Date','Joining Date'];
-  const r=S.placements.map(p=>[p.student_name,p.department,p.student_email,p.company_name,p.role,p.package,p.offer_date,p.joining_date]);
-  const csv=[h,...r].map(row=>row.join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=`placements_${new Date().toISOString().slice(0,10)}.csv`;a.click();toast('CSV exported!');
-}
+  `, async () => {
+        const p = { student_id: $('f-pstu').value, drive_id: $('f-pdrv').value, package: $('f-ppkg').value, offer_date: $('f-pod').value, joining_date: $('f-pjd').value };
+        if (!p.student_id || !p.drive_id || !p.package) { toast('Fill all required fields', 'te'); return false; }
+        const res = await api.post('/api/placements', p);
+        if (res.error) { toast(res.error, 'te'); return false; }
+        toast('Placement recorded!'); S.placements = await api.get('/api/placements'); renderPlacements(); renderPlacementStats();
+      });
+    }
+    async function delPlacement(id) { if (!confirm('Remove placement?')) return; await api.del(`/api/placements/${id}`); toast('Removed', 'te'); S.placements = await api.get('/api/placements'); renderPlacements(); renderPlacementStats(); }
+    function exportCSV() {
+      const h = ['Name', 'Dept', 'Email', 'Company', 'Role', 'Package', 'Offer Date', 'Joining Date'];
+      const r = S.placements.map(p => [p.student_name, p.department, p.student_email, p.company_name, p.role, p.package, p.offer_date, p.joining_date]);
+      const csv = [h, ...r].map(row => row.join(',')).join('\n');
+      const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv); a.download = `placements_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); toast('CSV exported!');
+    }
 
-/* Modal */
-function openModal(title,body,onSave){
-  $('modalTitle').textContent=title;$('modalBody').innerHTML=body;
-  $('modalSave').style.display=onSave?'':'none';S.modalFn=onSave;
-  $('modalOverlay').classList.add('open');
-}
-function closeModal(){$('modalOverlay').classList.remove('open');S.modalFn=null;}
-async function submitModal(){if(S.modalFn){const r=await S.modalFn();if(r!==false)closeModal();}}
+    /* Modal */
+    function openModal(title, body, onSave) {
+      $('modalTitle').textContent = title; $('modalBody').innerHTML = body;
+      $('modalSave').style.display = onSave ? '' : 'none'; S.modalFn = onSave;
+      $('modalOverlay').classList.add('open');
+    }
+    function closeModal() { $('modalOverlay').classList.remove('open'); S.modalFn = null; }
+    async function submitModal() { if (S.modalFn) { const r = await S.modalFn(); if (r !== false) closeModal(); } }
 
-/* Global add + search */
-function handleAdd(){
-  if(S.page==='students')openAddStudent();
-  else if(S.page==='companies')openAddCompany();
-  else if(S.page==='drives')openAddDrive();
-  else if(S.page==='placements')openAddPlacement();
-  else toast('Use "Apply Students" on a drive card','ti');
-}
-function handleGlobalSearch(q){
-  q=q.toLowerCase();
-  if(S.page==='students'){$('stuSearch').value=q;renderStudents();}
-  else if(S.page==='companies'){$('coSearch').value=q;renderCompanies();}
-  else if(S.page==='drives'){$('drSearch').value=q;renderDrives();}
-  else if(S.page==='applications'){$('appSearch').value=q;renderApplications();}
-  else if(S.page==='placements'){$('plSearch').value=q;renderPlacements();}
-}
+    /* Global add + search */
+    function handleAdd() {
+      if (S.page === 'students') openAddStudent();
+      else if (S.page === 'companies') openAddCompany();
+      else if (S.page === 'drives') openAddDrive();
+      else if (S.page === 'placements') openAddPlacement();
+      else toast('Use "Apply Students" on a drive card', 'ti');
+    }
+    function handleGlobalSearch(q) {
+      q = q.toLowerCase();
+      if (S.page === 'students') { $('stuSearch').value = q; renderStudents(); }
+      else if (S.page === 'companies') { $('coSearch').value = q; renderCompanies(); }
+      else if (S.page === 'drives') { $('drSearch').value = q; renderDrives(); }
+      else if (S.page === 'applications') { $('appSearch').value = q; renderApplications(); }
+      else if (S.page === 'placements') { $('plSearch').value = q; renderPlacements(); }
+    }
 
-/* Sidebar toggle */
-function toggleSidebar(){$('sidebar').classList.toggle('collapsed');}
+    /* Sidebar toggle */
+    function toggleSidebar() { $('sidebar').classList.toggle('collapsed'); }
 
-/* Init */
-document.addEventListener('DOMContentLoaded',()=>{$('addBtn').style.display='none';loadDashboard();});
-</script>
+    /* Init */
+    document.addEventListener('DOMContentLoaded', () => { $('addBtn').style.display = 'none'; loadDashboard(); });
+  </script>
 </body>
+
 </html>
