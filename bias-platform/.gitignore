@@ -1,0 +1,25 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# Next.js
+.next/
+out/
+
+# env
+.env
+.env.local
+.env.production
+
+# uploads
+uploads/
+
+# Python
+python-service/.venv/
+python-service/__pycache__/
+python-service/*.pyc
+.tmp/
+
+# misc
+.DS_Store
+*.log

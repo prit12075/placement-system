@@ -1,12 +1,24 @@
 {
-  "name": "placement-system",
-  "version": "1.0.0",
-  "description": "College Placement Management System - DBMS Project",
-  "main": "server.js",
+  "name": "placeme",
+  "version": "2.0.0",
+  "description": "PlaceMe — College Placement Management System (DBMS Project)",
   "scripts": {
-    "start": "node server.js"
+    "server": "node server/server.js",
+    "client": "cd client && npm run dev",
+    "seed": "node server/seed.js",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "cd client && npm run build",
+    "start": "npm run build && npm run server"
   },
   "dependencies": {
-    "express": "^4.18.3"
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.3",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.2"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }
