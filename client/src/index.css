@@ -608,6 +608,122 @@ tbody tr:hover td:first-child { box-shadow:inset 3px 0 0 var(--accent); }
 /* ─── CARDS GRID ───────────────────────────────────────────────────────── */
 .cards-grid { display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px; }
 
+/* ─── STATS CARD (Premium) ─────────────────────────────────────────────── */
+.stats-card {
+  position:relative;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:24px;cursor:default;
+  overflow:hidden;transition:all .3s var(--ease-out);
+  backdrop-filter:blur(20px);
+}
+.stats-card::before {
+  content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent-glow),transparent);
+  opacity:0;transition:opacity var(--dur) ease;pointer-events:none;
+}
+.stats-card:hover::before { opacity:1; }
+.stats-card:hover {
+  border-color:var(--border-accent);background:var(--bg-elevated);
+  transform:translateY(-2px);box-shadow:var(--shadow-accent);
+}
+
+.stats-glow {
+  position:absolute;inset:0;background:radial-gradient(circle at top right,var(--accent-glow),transparent 50%);
+  opacity:0;pointer-events:none;transition:opacity var(--dur);
+}
+.stats-card:hover .stats-glow { opacity:1; }
+
+.stats-grid { display:grid;grid-template-columns:1fr;gap:12px;position:relative;z-index:1; }
+.stats-icon {
+  width:44px;height:44px;border-radius:var(--r-md);
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg-floating);border:1px solid var(--border);
+  color:var(--accent);
+  transition:all .2s ease;
+}
+.stats-card:hover .stats-icon {
+  background:var(--bg-elevated);border-color:var(--border-accent);
+  color:var(--accent-light);
+}
+.stats-card[data-color="violet"] .stats-icon { color:var(--violet); }
+.stats-card[data-color="teal"] .stats-icon { color:var(--teal); }
+.stats-card[data-color="emerald"] .stats-icon { color:var(--emerald); }
+
+.stats-label { font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-2); }
+.stats-value { font-size:28px;font-weight:700;font-family:'Space Grotesk';color:var(--text-1);line-height:1; }
+.stats-change {
+  display:inline-block;font-size:12px;font-weight:600;margin-top:6px;
+  padding:4px 8px;border-radius:var(--r-sm);background:var(--bg-floating);
+}
+.stats-change.up { color:var(--emerald); }
+.stats-change.down { color:var(--coral); }
+
+/* ─── DRIVE CARD (Premium) ─────────────────────────────────────────────── */
+.drive-card-btn {
+  background:none;border:none;cursor:pointer;padding:0;
+  transition:all .2s ease;outline:none;
+}
+
+.drive-card {
+  position:relative;background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--r-lg);padding:24px;
+  overflow:hidden;transition:all .3s var(--ease-out);
+  backdrop-filter:blur(20px);
+}
+
+.drive-card::before {
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--violet),var(--teal));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .3s var(--ease-out);
+}
+.drive-card-btn:hover .drive-card::before { transform:scaleX(1); }
+
+.drive-card:hover {
+  border-color:var(--border-accent);background:var(--bg-elevated);
+  transform:translateY(-4px);box-shadow:var(--shadow-lg);
+}
+
+.drive-header { display:flex;align-items:center;gap:8px;margin-bottom:16px; }
+.drive-status-dot { width:8px;height:8px;border-radius:50%;animation:pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+.drive-status {
+  display:inline-block;font-size:11px;font-weight:600;padding:4px 10px;
+  border-radius:var(--r-sm);text-transform:capitalize;
+}
+
+.drive-company {
+  font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em;
+  color:var(--text-2);margin-bottom:6px;
+}
+
+.drive-title {
+  font-size:18px;font-weight:700;font-family:'Space Grotesk';
+  color:var(--text-1);margin-bottom:14px;line-height:1.2;
+}
+
+.drive-meta { display:flex;flex-direction:column;gap:8px;margin-bottom:16px;font-size:13px;color:var(--text-2); }
+.meta-item { display:flex;align-items:center;gap:6px; }
+.meta-item svg { opacity:0.7; }
+
+.drive-salary {
+  padding:14px;background:var(--bg-floating);border-radius:var(--r-md);
+  border:1px solid var(--border);margin-bottom:16px;
+}
+.salary-label { font-size:11px;font-weight:500;color:var(--text-2);text-transform:uppercase;margin-bottom:4px; }
+.salary-value { font-size:16px;font-weight:700;color:var(--accent-light); }
+
+.drive-stats { display:flex;gap:16px;margin-bottom:16px; }
+.stat { display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2); }
+.stat svg { opacity:0.6; }
+
+.drive-action {
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:12px;font-weight:600;color:var(--accent);
+  padding-top:12px;border-top:1px solid var(--border);
+}
+.drive-action svg { transition:transform .2s ease; }
+.drive-card-btn:hover .drive-action svg { transform:translateX(2px); }
+
 /* ─── RESPONSIVE ───────────────────────────────────────────────────────── */
 @media(max-width:900px) {
   .stat-grid { grid-template-columns:repeat(2,1fr); }
