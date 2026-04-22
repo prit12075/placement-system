@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>PlaceMe — Student Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+    <!-- bg -->
+    <div class="bg-grid"></div>
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+
+    <div class="layout">
+        <!-- ══ SIDEBAR ══════════════════════════════════════════════════════════ -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <div class="logo-icon">P</div>
+                <div class="logo-text-wrap">
+                    <div class="logo-name">PlaceMe</div>
+                    <div class="logo-sub">Student Portal</div>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <div class="nav-item active" onclick="go('dashboard')">
+                    <div class="nav-ico"><i class="fas fa-user-graduate"></i></div><span class="nav-label">My
+                        Profile</span>
+                </div>
+
+                <div class="nav-item" onclick="go('drives')">
+                    <div class="nav-ico"><i class="fas fa-briefcase"></i></div><span class="nav-label">Available
+                        Drives</span>
+                </div>
+            </nav>
+
+        </aside>
+
+        <!-- ══ MAIN ═════════════════════════════════════════════════════════════ -->
+        <div class="main">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <div class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+                    <div>
+                        <span class="pg-title" id="pageTitle">My Profile</span>
+                    </div>
+                </div>
+                <div class="tb-right">
+                    <div class="tb-av" id="headerAvatar"
+                        onclick="document.getElementById('userDropdown').classList.toggle('active')">S</div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="ud-item" onclick="openProfileModal()"><i class="fas fa-user-edit"></i> Edit Profile
+                        </div>
+                        <div class="ud-item danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Log Out</div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content">
+
+                <!-- ── DASHBOARD (Profile & Applications) ─────────────────────────────── -->
+                <div class="page active" id="page-dashboard">
+                    <div class="welcome" id="studentWelcome">
+                        <div class="wb-eyebrow"><i class="fas fa-sparkles"></i> Welcome back</div>
+                        <h1 class="wb-title">Loading...</h1>
+                    </div>
+
+                    <div class="stat-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                        <div class="sc sv">
+                            <div class="sc-glow"></div>
+                            <div class="sc-ico"><i class="fas fa-star"></i></div>
+                            <div class="sc-val" id="s-cgpa">0.0</div>
+                            <div class="sc-lbl">Current CGPA</div>
+                        </div>
+                        <div class="sc sc2">
+                            <div class="sc-glow"></div>
+                            <div class="sc-ico"><i class="fas fa-building"></i></div>
+                            <div class="sc-val" id="s-dept">--</div>
+                            <div class="sc-lbl">Department</div>
+                        </div>
+                        <div class="sc sa" id="placementBadge" style="display: none;">
+                            <div class="sc-glow"></div>
+                            <div class="sc-ico"><i class="fas fa-trophy"></i></div>
+                            <div class="sc-val">Placed!</div>
+                            <div class="sc-lbl" id="s-placed-info">Congratulations</div>
+                        </div>
+                    </div>
+
+                    <div class="sec-head" style="margin-top: 30px;">
+                        <div class="sec-ttl"><i class="fas fa-file-alt" style="color:var(--a);margin-right:8px"></i>My
+                            Applications</div>
+                    </div>
+                    <div class="tcard">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Role</th>
+                                    <th>Package Range</th>
+                                    <th>Applied On</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="appTbl">
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty"><i class="fas fa-spinner fa-spin"></i>
+                                            <p>Loading...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ── AVAILABLE DRIVES ─────────────────────────────── -->
+                <div class="page" id="page-drives">
+                    <div class="cards-grid" id="drGrid">
+                        <div style="grid-column:1/-1">
+                            <div class="empty"><i class="fas fa-spinner fa-spin"></i>
+                                <p>Loading drives...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /content -->
+        </div><!-- /main -->
+    </div><!-- /layout -->
+
+    <!-- ══ EDIT PROFILE MODAL ════════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="editProfileModal"
+        onclick="if(event.target===this) document.getElementById('editProfileModal').classList.remove('active')">
+        <div class="modal">
+            <div class="md-head">
+                <div class="md-title">Edit My Profile</div>
+                <div class="md-close" onclick="document.getElementById('editProfileModal').classList.remove('active')">
+                    <i class="fas fa-times"></i></div>
+            </div>
+            <div class="md-body">
+                <div class="frm-grid">
+                    <div class="frm-grp">
+                        <label class="frm-lbl">Full Name</label>
+                        <input type="text" class="frm-inp" id="epName" placeholder="Your Name">
+                    </div>
+                    <div class="frm-grp">
+                        <label class="frm-lbl">Phone Number</label>
+                        <input type="text" class="frm-inp" id="epPhone" placeholder="Mobile">
+                    </div>
+                    <div class="frm-grp">
+                        <label class="frm-lbl">Skills (Comma Separated)</label>
+                        <input type="text" class="frm-inp" id="epSkills" placeholder="Python, React, AWS">
+                    </div>
+                </div>
+            </div>
+            <div class="md-foot">
+                <button class="btn btn-o"
+                    onclick="document.getElementById('editProfileModal').classList.remove('active')">Cancel</button>
+                <button class="btn btn-p" onclick="saveProfile()"><i class="fas fa-check"></i> Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-wrap" id="toastContainer"></div>
+
+    <script src="/js/student.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,401 @@
+`
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>PlaceMe — Placement System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+
+  <!-- bg -->
+  <div class="bg-grid"></div>
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+
+  <div class="layout">
+
+    <!-- ══ SIDEBAR ══════════════════════════════════════════════════════════ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="logo">
+        <div class="logo-icon">P</div>
+        <div class="logo-text-wrap">
+          <div class="logo-name">PlaceMe</div>
+          <div class="logo-sub">Placement Portal</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-sec">Main</div>
+        <div class="nav-item active" onclick="go('dashboard')">
+          <div class="nav-ico"><i class="fas fa-chart-pie"></i></div><span class="nav-label">Dashboard</span>
+        </div>
+
+        <div class="nav-sec">Manage</div>
+        <div class="nav-item" onclick="go('students')">
+          <div class="nav-ico"><i class="fas fa-user-graduate"></i></div><span class="nav-label">Students</span>
+        </div>
+        <div class="nav-item" onclick="go('companies')">
+          <div class="nav-ico"><i class="fas fa-building"></i></div><span class="nav-label">Companies</span>
+        </div>
+        <div class="nav-item" onclick="go('drives')">
+          <div class="nav-ico"><i class="fas fa-briefcase"></i></div><span class="nav-label">Drives</span>
+        </div>
+
+        <div class="nav-sec">Track</div>
+        <div class="nav-item" onclick="go('applications')">
+          <div class="nav-ico"><i class="fas fa-file-alt"></i></div><span class="nav-label">Applications</span>
+        </div>
+        <div class="nav-item" onclick="go('placements')">
+          <div class="nav-ico"><i class="fas fa-trophy"></i></div><span class="nav-label">Placements</span>
+        </div>
+      </nav>
+
+      <div class="sb-user">
+        <div class="sb-av">A</div>
+        <div class="sb-user-info">
+          <div class="sb-uname">Admin</div>
+          <div class="sb-urole">Placement Officer</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ══ MAIN ═════════════════════════════════════════════════════════════ -->
+    <div class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <div class="menu-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></div>
+          <div>
+            <span class="pg-title" id="pageTitle">Dashboard</span>
+            <span class="pg-subtitle" id="pageSubtitle"></span>
+          </div>
+        </div>
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input class="tb-search" id="globalSearch" placeholder="Search anything…"
+            oninput="handleGlobalSearch(this.value)">
+        </div>
+        <button class="tb-btn" id="addBtn" onclick="handleAdd()" style="display:none"><i class="fas fa-plus"></i> Add
+          New</button>
+        <div class="tb-right">
+          <div class="tb-av" id="headerAvatar"
+            onclick="document.getElementById('userDropdown').classList.toggle('active')">A</div>
+          <div class="user-dropdown" id="userDropdown">
+            <div class="ud-item" onclick="openProfileModal()"><i class="fas fa-user-edit"></i> Edit Profile</div>
+            <div class="ud-item danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Log Out</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="content">
+
+        <!-- ── DASHBOARD ─────────────────────────────── -->
+        <div class="page active" id="page-dashboard">
+          <div class="welcome">
+            <div class="wb-eyebrow"><i class="fas fa-sparkles"></i> Welcome back, Admin</div>
+            <h1 class="wb-title">Placement <span>Command Centre</span></h1>
+            <p class="wb-desc">Track student progress, manage company drives, and measure placement outcomes — all in
+              one place.</p>
+            <div class="wb-chips">
+              <div class="wb-chip"><i class="fas fa-circle-check"></i>Live Data</div>
+              <div class="wb-chip"><i class="fas fa-bolt"></i>Real-time Updates</div>
+              <div class="wb-chip"><i class="fas fa-shield-halved"></i>DBMS Backed</div>
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="sc sv">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-user-graduate"></i></div>
+              <div class="sc-val" id="s-students">0</div>
+              <div class="sc-lbl">Total Students</div>
+              <div class="sc-sub"><i class="fas fa-circle" style="color:#a78bfa"></i><span id="s-active">Active
+                  batch</span></div>
+            </div>
+            <div class="sc sc2">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-building"></i></div>
+              <div class="sc-val" id="s-companies">0</div>
+              <div class="sc-lbl">Partner Companies</div>
+              <div class="sc-sub"><i class="fas fa-handshake" style="color:var(--c)"></i><span
+                  style="color:var(--c)">Campus partners</span></div>
+            </div>
+            <div class="sc sa">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-briefcase"></i></div>
+              <div class="sc-val" id="s-drives">0</div>
+              <div class="sc-lbl">Placement Drives</div>
+              <div class="sc-sub"><i class="fas fa-calendar" style="color:var(--a)"></i><span
+                  style="color:var(--a)">This season</span></div>
+            </div>
+            <div class="sc sg">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-trophy"></i></div>
+              <div class="sc-val" id="s-placed">0</div>
+              <div class="sc-lbl">Students Placed</div>
+              <div class="sc-sub"><i class="fas fa-arrow-up"></i><span id="s-rate">0% placement rate</span></div>
+            </div>
+          </div>
+
+          <div class="chart-row">
+            <div class="chart-card">
+              <div class="cc-head">
+                <div class="cc-title"><i class="fas fa-chart-bar"></i>Department-wise Placement</div><span
+                  class="cc-pill">This Year</span>
+              </div>
+              <canvas id="deptChart" style="max-height:180px"></canvas>
+            </div>
+            <div class="chart-card">
+              <div class="cc-head">
+                <div class="cc-title"><i class="fas fa-circle-half-stroke"></i>Drive Status</div>
+              </div>
+              <div class="ring-center" style="height:180px">
+                <canvas id="driveChart"></canvas>
+                <div class="ring-label">
+                  <div class="ring-num" id="s-drives2">0</div>
+                  <div class="ring-sub">Total Drives</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sec-head">
+            <div class="sec-ttl"><i class="fas fa-medal" style="color:var(--a);margin-right:8px"></i>Recent Placements
+            </div>
+          </div>
+          <div class="tcard">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Company</th>
+                  <th>Role</th>
+                  <th>Package</th>
+                  <th>Offer Date</th>
+                </tr>
+              </thead>
+              <tbody id="recentTbl"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── STUDENTS ───────────────────────────────── -->
+        <div class="page" id="page-students">
+          <div class="filters">
+            <input class="fi fi-stretch" id="stuSearch" placeholder="Search name, email, skills…"
+              oninput="renderStudents()">
+            <select class="fi" id="stuDept" onchange="renderStudents()">
+              <option value="">All Departments</option>
+            </select>
+            <select class="fi" id="stuStatus" onchange="renderStudents()">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="tcard">
+            <div class="tcard-head">
+              <h3 id="stuCount">Students</h3><button class="tb-btn" style="padding:7px 14px;font-size:12px"
+                onclick="openAddStudent()"><i class="fas fa-plus"></i> Add</button>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Department</th>
+                  <th>CGPA</th>
+                  <th>Skills</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="stuTbl"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── COMPANIES ──────────────────────────────── -->
+        <div class="page" id="page-companies">
+          <div class="filters">
+            <input class="fi fi-stretch" id="coSearch" placeholder="Search companies…" oninput="renderCompanies()">
+            <select class="fi" id="coIndustry" onchange="renderCompanies()">
+              <option value="">All Industries</option>
+            </select>
+          </div>
+          <div class="cards-grid" id="coGrid"></div>
+        </div>
+
+        <!-- ── DRIVES ─────────────────────────────────── -->
+        <div class="page" id="page-drives">
+          <div class="filters">
+            <input class="fi fi-stretch" id="drSearch" placeholder="Search drives…" oninput="renderDrives()">
+            <div class="tabs">
+              <button class="tab on" onclick="setDriveFilter('',this)">All</button>
+              <button class="tab" onclick="setDriveFilter('upcoming',this)">Upcoming</button>
+              <button class="tab" onclick="setDriveFilter('ongoing',this)">Ongoing</button>
+              <button class="tab" onclick="setDriveFilter('completed',this)">Completed</button>
+            </div>
+          </div>
+          <div class="cards-grid" id="drGrid"></div>
+        </div>
+
+        <!-- ── APPLICATIONS ───────────────────────────── -->
+        <div class="page" id="page-applications">
+          <div class="filters">
+            <input class="fi fi-stretch" id="appSearch" placeholder="Search applications…"
+              oninput="renderApplications()">
+            <div class="tabs">
+              <button class="tab on" onclick="setAppFilter('',this)">All</button>
+              <button class="tab" onclick="setAppFilter('applied',this)">Applied</button>
+              <button class="tab" onclick="setAppFilter('shortlisted',this)">Shortlisted</button>
+              <button class="tab" onclick="setAppFilter('selected',this)">Selected</button>
+              <button class="tab" onclick="setAppFilter('rejected',this)">Rejected</button>
+            </div>
+          </div>
+          <div class="tcard">
+            <div class="tcard-head">
+              <h3 id="appCount">Applications</h3>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Company / Drive</th>
+                  <th>Package</th>
+                  <th>CGPA</th>
+                  <th>Status</th>
+                  <th>Applied</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="appTbl"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── PLACEMENTS ─────────────────────────────── -->
+        <div class="page" id="page-placements">
+          <div class="pl-stat-row">
+            <div class="sc sg">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-trophy"></i></div>
+              <div class="sc-val" id="pl-total">0</div>
+              <div class="sc-lbl">Total Placed</div>
+            </div>
+            <div class="sc sa">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-indian-rupee-sign"></i></div>
+              <div class="sc-val" id="pl-avg">0</div>
+              <div class="sc-lbl">Avg Package (LPA)</div>
+            </div>
+            <div class="sc sc2">
+              <div class="sc-glow"></div>
+              <div class="sc-ico"><i class="fas fa-arrow-trend-up"></i></div>
+              <div class="sc-val" id="pl-max">0</div>
+              <div class="sc-lbl">Highest Package (LPA)</div>
+            </div>
+          </div>
+          <div class="filters">
+            <input class="fi fi-stretch" id="plSearch" placeholder="Search placements…" oninput="renderPlacements()">
+            <button class="tb-btn" style="padding:9px 16px;font-size:12px" onclick="openAddPlacement()"><i
+                class="fas fa-plus"></i> Record</button>
+            <button class="btn btn-g" style="padding:9px 14px;font-size:12px;border-radius:10px"
+              onclick="exportCSV()"><i class="fas fa-download"></i> CSV</button>
+          </div>
+          <div class="tcard">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Dept</th>
+                  <th>Company</th>
+                  <th>Role</th>
+                  <th>Package</th>
+                  <th>Offer Date</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="plTbl"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div><!-- /layout -->
+
+  <!-- ══ MODAL ════════════════════════════════════════════════════════════ -->
+  <div class="overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="modalTitle"></h2><button class="modal-x" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-foot">
+        <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-p" id="modalSave" onclick="submitModal()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ APPLY OVERLAY ═════════════════════════════════════════════════════ -->
+  <div class="overlay" id="applyOverlay" onclick="if(event.target===this)closeApply()">
+    <div class="modal" style="max-width:460px">
+      <div class="modal-head">
+        <h2 id="applyTitle">Apply Students</h2><button class="modal-x" onclick="closeApply()">✕</button>
+      </div>
+      <div class="modal-body" id="applyBody"></div>
+      <div class="modal-foot">
+        <button class="btn btn-g" onclick="closeApply()">Close</button>
+        <button class="btn btn-p" onclick="submitApply()"><i class="fas fa-paper-plane"></i> Submit
+          Applications</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ EDIT PROFILE MODAL ════════════════════════════════════════════════════════════ -->
+  <div class="modal-overlay" id="editProfileModal"
+    onclick="if(event.target===this) document.getElementById('editProfileModal').classList.remove('active')">
+    <div class="modal">
+      <div class="md-head">
+        <div class="md-title">Edit Profile</div>
+        <div class="md-close" onclick="document.getElementById('editProfileModal').classList.remove('active')"><i
+            class="fas fa-times"></i></div>
+      </div>
+      <div class="md-body">
+        <div class="frm-grid">
+          <div class="frm-grp">
+            <label class="frm-lbl">Full Name</label>
+            <input type="text" class="frm-inp" id="epName" placeholder="Admin Officer" value="Admin">
+          </div>
+          <div class="frm-grp">
+            <label class="frm-lbl">Email</label>
+            <input type="email" class="frm-inp" id="epEmail" placeholder="admin@college.edu" value="admin@college.edu"
+              readonly>
+          </div>
+        </div>
+      </div>
+      <div class="md-foot">
+        <button class="btn btn-o"
+          onclick="document.getElementById('editProfileModal').classList.remove('active')">Cancel</button>
+        <button class="btn btn-p" onclick="saveProfile()"><i class="fas fa-check"></i> Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastContainer"></div>
+
+  <!-- ══ SCRIPT ════════════════════════════════════════════════════════════ -->
+  <script src="/js/management.js"></script>
+</body>
+
+</html>
