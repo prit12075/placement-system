@@ -1,0 +1,15 @@
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Database files
+placement.db
+placement.db-shm
+placement.db-wal
+
+# Environment variables
+.env
+
+# OS generated files
+.DS_Store
+Thumbs.db
