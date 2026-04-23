@@ -12,6 +12,8 @@ yarn.lock
 
 # Database
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
 placement.db
