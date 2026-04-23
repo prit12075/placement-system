@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../components/Toast';
-import { MapPin, Building2, Calendar, Clock, Send, AlertTriangle } from 'lucide-react';
+import { MapPin, Building2, Calendar, Clock, Send, AlertTriangle, CheckCircle } from 'lucide-react';
 
 export default function BrowseJobs() {
   const api = useApi();
