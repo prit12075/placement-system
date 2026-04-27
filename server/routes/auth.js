@@ -31,7 +31,7 @@ router.post('/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user.id, email: user.email, role: user.role, name: user.name, phone: user.phone },
+      user: { id: user.id, email: user.email, role: user.role, first_name: user.first_name, last_name: user.last_name, phone: user.phone },
       student,
     });
   } catch (e) {
@@ -43,8 +43,8 @@ router.post('/login', async (req, res) => {
 router.post('/register', async (req, res) => {
   const conn = await pool.getConnection();
   try {
-    const { name, email, password, phone, enrollment_no, department, batch_year, cgpa, tenth_pct, twelfth_pct } = req.body;
-    if (!name || !email || !password || !enrollment_no || !department || !batch_year) {
+    const { first_name, last_name, email, password, phone, enrollment_no, department, batch_year, cgpa, tenth_pct, twelfth_pct } = req.body;
+    if (!first_name || !last_name || !email || !password || !enrollment_no || !department || !batch_year) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -53,8 +53,8 @@ router.post('/register', async (req, res) => {
     await conn.beginTransaction();
 
     const [userResult] = await conn.query(
-      'INSERT INTO users (email, password, role, name, phone) VALUES (?, ?, ?, ?, ?)',
-      [email, hash, 'student', name, phone || null]
+      'INSERT INTO users (email, password, role, first_name, last_name, phone) VALUES (?, ?, ?, ?, ?, ?)',
+      [email, hash, 'student', first_name, last_name, phone || null]
     );
 
     await conn.query(
@@ -65,8 +65,8 @@ router.post('/register', async (req, res) => {
 
     await conn.commit();
 
-    const token = generateToken({ id: userResult.insertId, email, role: 'student', name });
-    res.json({ token, user: { id: userResult.insertId, email, role: 'student', name } });
+    const token = generateToken({ id: userResult.insertId, email, role: 'student', first_name, last_name });
+    res.json({ token, user: { id: userResult.insertId, email, role: 'student', first_name, last_name } });
   } catch (e) {
     await conn.rollback();
     if (e.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'Email or enrollment number already exists' });
@@ -79,7 +79,7 @@ router.post('/register', async (req, res) => {
 // GET /api/auth/me
 router.get('/me', requireAuth, async (req, res) => {
   try {
-    const [users] = await pool.query('SELECT id, email, role, name, phone, created_at FROM users WHERE id = ?', [req.user.id]);
+    const [users] = await pool.query('SELECT id, email, role, first_name, last_name, phone, created_at FROM users WHERE id = ?', [req.user.id]);
     if (!users.length) return res.status(404).json({ error: 'User not found' });
 
     const user = users[0];

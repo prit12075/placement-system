@@ -7,7 +7,7 @@ import { Search, Plus, Pencil, Trash2, CheckCircle, Clock } from 'lucide-react';
 const DEPARTMENTS = ['CSE', 'ECE', 'Mechanical', 'Civil', 'EEE', 'IT', 'Chemical'];
 
 const EMPTY_FORM = {
-  name: '', email: '', phone: '', password: '',
+  first_name: '', last_name: '', email: '', phone: '', password: '',
   enrollment_no: '', department: '', batch_year: '',
   cgpa: '', tenth_pct: '', twelfth_pct: '', backlogs: '', skills: '',
   is_active: true,
@@ -29,7 +29,8 @@ export default function Students() {
   const load = () => api.get('/api/admin/students').then(setStudents).catch(e => toast.error(e.error));
 
   const filtered = students.filter(s => {
-    const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
+    const fullName = `${s.first_name} ${s.last_name}`.toLowerCase();
+    const matchSearch = fullName.includes(search.toLowerCase()) ||
       s.enrollment_no.toLowerCase().includes(search.toLowerCase()) ||
       s.email.toLowerCase().includes(search.toLowerCase());
     const matchDept = !filterDept || s.department === filterDept;
@@ -43,7 +44,7 @@ export default function Students() {
   const openEdit = (s) => {
     setFormData({
       id: s.id,
-      name: s.name, email: s.email, phone: s.phone || '',
+      first_name: s.first_name, last_name: s.last_name, email: s.email, phone: s.phone || '',
       password: '',
       enrollment_no: s.enrollment_no, department: s.department,
       batch_year: s.batch_year, cgpa: s.cgpa, tenth_pct: s.tenth_pct,
@@ -59,8 +60,8 @@ export default function Students() {
   };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.email || !formData.department) {
-      toast.error('Name, email and department are required');
+    if (!formData.first_name || !formData.last_name || !formData.email || !formData.department) {
+      toast.error('First name, last name, email and department are required');
       return;
     }
     if (!formData.id && !formData.password) {
@@ -127,8 +128,8 @@ export default function Students() {
               <tr key={s.id}>
                 <td>
                   <div className="cell-avatar">
-                    <div className="avatar" style={{ background: `hsl(${s.name.charCodeAt(0) * 9 % 360},50%,25%)` }}>{s.name[0]}</div>
-                    <div><div className="cell-name">{s.name}</div><div className="cell-sub">{s.email}</div></div>
+                    <div className="avatar" style={{ background: `hsl(${s.first_name.charCodeAt(0) * 9 % 360},50%,25%)` }}>{s.first_name[0]}</div>
+                    <div><div className="cell-name">{s.first_name} {s.last_name}</div><div className="cell-sub">{s.email}</div></div>
                   </div>
                 </td>
                 <td style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 12 }}>{s.enrollment_no}</td>
@@ -171,9 +172,15 @@ export default function Students() {
         >
           <div className="form-row">
             <div className="form-group">
-              <label>Full Name *</label>
-              <input value={formData.name} onChange={set('name')} placeholder="Arjun Sharma" />
+              <label>First Name *</label>
+              <input value={formData.first_name} onChange={set('first_name')} placeholder="Arjun" />
             </div>
+            <div className="form-group">
+              <label>Last Name *</label>
+              <input value={formData.last_name} onChange={set('last_name')} placeholder="Sharma" />
+            </div>
+          </div>
+          <div className="form-row">
             <div className="form-group">
               <label>Email *</label>
               <input type="email" value={formData.email} onChange={set('email')} placeholder="student@college.edu" disabled={!!formData.id} style={formData.id ? { opacity: 0.5 } : {}} />

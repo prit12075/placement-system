@@ -36,9 +36,9 @@ export default function StudentLayout() {
 
         <div className="student-nav-right">
           <div className="sidebar-avatar avatar-sm" style={{ width: 30, height: 30, fontSize: 11 }}>
-            {user?.name?.[0] || 'S'}
+            {user?.first_name?.[0] || 'S'}
           </div>
-          <span style={{ fontSize: 13, fontWeight: 600 }}>{user?.name}</span>
+          <span style={{ fontSize: 13, fontWeight: 600 }}>{user?.first_name}</span>
           <button className="sidebar-logout" onClick={handleLogout} title="Logout">
             <LogOut size={15} />
           </button>

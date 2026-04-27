@@ -47,9 +47,9 @@ export default function AdminLayout() {
         </nav>
 
         <div className="sidebar-user">
-          <div className="sidebar-avatar">{user?.name?.[0] || 'A'}</div>
+          <div className="sidebar-avatar">{user?.first_name?.[0] || 'A'}</div>
           <div className="sidebar-user-info">
-            <h4>{user?.name || 'Admin'}</h4>
+            <h4>{user?.first_name ? `${user.first_name} ${user.last_name}` : 'Admin'}</h4>
             <span>Placement Officer</span>
           </div>
           <button className="sidebar-logout" onClick={handleLogout} title="Logout">

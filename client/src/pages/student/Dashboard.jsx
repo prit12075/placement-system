@@ -19,7 +19,7 @@ export default function StudentDashboard() {
     <div style={{ maxWidth: 1000, margin: '0 auto' }}>
       {data.placement ? (
         <div className="welcome-banner" style={{ background: 'radial-gradient(ellipse at center, rgba(52,211,153,0.1), transparent 70%), var(--bg-card)', borderColor: 'rgba(52,211,153,0.3)' }}>
-          <h1 style={{ color: 'var(--emerald)' }}><Trophy style={{display:'inline', marginRight:8}}/> Congratulations, {user.name}!</h1>
+          <h1 style={{ color: 'var(--emerald)' }}><Trophy style={{display:'inline', marginRight:8}}/> Congratulations, {user.first_name}!</h1>
           <p>You have been placed at <strong>{data.placement.company_name}</strong> as a <strong>{data.placement.role}</strong>.</p>
           <div style={{ marginTop: 24, padding: 20, background: 'rgba(0,0,0,0.4)', borderRadius: 'var(--r-md)', display: 'inline-flex', gap: 40 }}>
             <div><div style={{fontSize:11, color:'var(--text-3)'}}>Package</div><div style={{fontFamily:'Space Grotesk', fontSize:24, fontWeight:700, color:'var(--emerald)'}}>₹ {data.placement.package} LPA</div></div>
@@ -28,7 +28,7 @@ export default function StudentDashboard() {
         </div>
       ) : (
         <div className="welcome-banner">
-          <h1>Hello, <span>{user.name}</span></h1>
+          <h1>Hello, <span>{user.first_name}</span></h1>
           <p>Your placement journey starts here. Keep your profile updated and apply for active drives.</p>
           <div className="welcome-chips" style={{marginTop:24}}>
             <Link to="/student/jobs" className="btn btn-primary btn-sm"><Briefcase size={14}/> Browse {data.stats.openJobs} Open Jobs</Link>

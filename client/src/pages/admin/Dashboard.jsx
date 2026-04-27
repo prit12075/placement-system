@@ -50,7 +50,7 @@ export default function Dashboard() {
   return (
     <>
       <div className="welcome-banner">
-        <h1>Welcome, <span>{user.name}</span></h1>
+        <h1>Welcome, <span>{user.first_name}</span></h1>
         <p>Placement Command Centre. Track student outcomes, manage incoming drives, and monitor campus placement performance.</p>
         <div className="welcome-chips">
           <div className="welcome-chip"><TrendingUp /> Active Placement Season ({new Date().getFullYear()})</div>

@@ -70,9 +70,15 @@ export default function Profile() {
         <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 20, color: 'var(--accent)' }}>Editable Details</h3>
         <div className="form-row">
           <div className="form-group">
-            <label>Full Name</label>
-            <input value={formData.name || ''} onChange={e => setFormData({...formData, name: e.target.value})} disabled={!isEditing} />
+            <label>First Name</label>
+            <input value={formData.first_name || ''} onChange={e => setFormData({...formData, first_name: e.target.value})} disabled={!isEditing} />
           </div>
+          <div className="form-group">
+            <label>Last Name</label>
+            <input value={formData.last_name || ''} onChange={e => setFormData({...formData, last_name: e.target.value})} disabled={!isEditing} />
+          </div>
+        </div>
+        <div className="form-row">
           <div className="form-group">
             <label>Phone Number</label>
             <input value={formData.phone || ''} onChange={e => setFormData({...formData, phone: e.target.value})} disabled={!isEditing} />

@@ -5,6 +5,13 @@
 const bcrypt = require('bcryptjs');
 const pool = require('./config/db');
 
+function splitName(fullName) {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return [parts[0], ''];
+  const lastName = parts.pop();
+  return [parts.join(' '), lastName];
+}
+
 async function seed() {
   const conn = await pool.getConnection();
   console.log('🌱 Seeding database...\n');
@@ -12,8 +19,9 @@ async function seed() {
   try {
     // ─── Admin user ───────────────────────────────────────────
     const adminHash = await bcrypt.hash('admin123', 10);
-    await conn.query(`INSERT IGNORE INTO users (email,password,role,name,phone) VALUES (?,?,?,?,?)`,
-      ['admin@placeme.edu', adminHash, 'admin', 'Dr. Rajesh Kumar', '9876500001']);
+    const [adminFirst, adminLast] = splitName('Dr. Rajesh Kumar');
+    await conn.query(`INSERT IGNORE INTO users (email,password,role,first_name,last_name,phone) VALUES (?,?,?,?,?,?)`,
+      ['admin@placeme.edu', adminHash, 'admin', adminFirst, adminLast, '9876500001']);
     console.log('✅ Admin: admin@placeme.edu / admin123');
 
     // ─── Student users + profiles ─────────────────────────────
@@ -42,8 +50,9 @@ async function seed() {
       const [existing] = await conn.query('SELECT id FROM users WHERE email = ?', [s.email]);
       if (existing.length) { stuIds.push(null); continue; }
 
-      const [uRes] = await conn.query('INSERT INTO users (email,password,role,name,phone) VALUES(?,?,?,?,?)',
-        [s.email, stuHash, 'student', s.name, s.phone]);
+      const [firstName, lastName] = splitName(s.name);
+      const [uRes] = await conn.query('INSERT INTO users (email,password,role,first_name,last_name,phone) VALUES(?,?,?,?,?,?)',
+        [s.email, stuHash, 'student', firstName, lastName, s.phone]);
       const [sRes] = await conn.query(
         'INSERT INTO students (user_id,enrollment_no,department,batch_year,cgpa,tenth_pct,twelfth_pct,backlogs,skills) VALUES(?,?,?,?,?,?,?,?,?)',
         [uRes.insertId, s.enroll, s.dept, s.batch, s.cgpa, s.t10, s.t12, s.backlogs, s.skills]);

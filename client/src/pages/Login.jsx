@@ -19,7 +19,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
-    email: '', password: '', name: '', phone: '',
+    email: '', password: '', first_name: '', last_name: '', phone: '',
     enrollment_no: '', department: '', batch_year: '',
     cgpa: '', tenth_pct: '', twelfth_pct: '',
   });
@@ -38,13 +38,13 @@ export default function Login() {
       if (mode === 'login') {
         const data = await api.post('/api/auth/login', { email: form.email, password: form.password });
         login(data);
-        toast.success(`Welcome back, ${data.user.name}`);
+        toast.success(`Welcome back, ${data.user.first_name}`);
         navigate(data.user.role === 'admin' ? '/admin' : '/student');
       } else {
         if (!form.department) { setError('Please select your department'); return; }
         if (!form.batch_year) { setError('Please select your batch year'); return; }
         const payload = {
-          name: form.name, email: form.email, password: form.password,
+          first_name: form.first_name, last_name: form.last_name, email: form.email, password: form.password,
           phone: form.phone || undefined,
           enrollment_no: form.enrollment_no,
           department: form.department,
@@ -108,9 +108,15 @@ export default function Login() {
                   <div className="auth-section-label">Personal Info</div>
                   <div className="form-row">
                     <div className="form-group">
-                      <label>Full Name *</label>
-                      <input value={form.name} onChange={set('name')} required placeholder="Arjun Sharma" />
+                      <label>First Name *</label>
+                      <input value={form.first_name} onChange={set('first_name')} required placeholder="Arjun" />
                     </div>
+                    <div className="form-group">
+                      <label>Last Name *</label>
+                      <input value={form.last_name} onChange={set('last_name')} required placeholder="Sharma" />
+                    </div>
+                  </div>
+                  <div className="form-row">
                     <div className="form-group">
                       <label>Phone <span style={{ color: 'var(--text-3)', fontWeight: 400 }}>(optional)</span></label>
                       <input value={form.phone} onChange={set('phone')} placeholder="9876543210" type="tel" />

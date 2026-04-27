@@ -12,14 +12,16 @@ CREATE TABLE IF NOT EXISTS users (
   email       VARCHAR(255) NOT NULL UNIQUE,
   password    VARCHAR(255) NOT NULL,
   role        ENUM('admin', 'student') NOT NULL DEFAULT 'student',
-  name        VARCHAR(100) NOT NULL,
+  first_name  VARCHAR(50) NOT NULL,
+  last_name   VARCHAR(50) NOT NULL,
   phone       VARCHAR(20),
   is_active   BOOLEAN DEFAULT TRUE,
   last_login  TIMESTAMP NULL,
   created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_users_role (role),
-  INDEX idx_users_active (is_active)
+  INDEX idx_users_active (is_active),
+  INDEX idx_users_name (last_name, first_name)
 ) ENGINE=InnoDB;
 
 -- ─── STUDENTS (extends users) ─────────────────────────────────────────────

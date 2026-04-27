@@ -21,7 +21,7 @@ router.get('/stats', async (req, res) => {
     const [deptStats] = await pool.query('SELECT * FROM placement_summary ORDER BY total_students DESC');
     const [jobStatus] = await pool.query('SELECT status, COUNT(*) AS count FROM job_postings GROUP BY status');
     const [recentPlacements] = await pool.query(`
-      SELECT p.package, p.offer_date, u.name AS student_name, s.department,
+      SELECT p.package, p.offer_date, u.first_name, u.last_name, s.department,
              c.name AS company_name, j.role
       FROM placements p
       JOIN students s ON p.student_id = s.id
@@ -40,9 +40,9 @@ router.get('/stats', async (req, res) => {
 router.get('/students', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT s.*, u.name, u.email, u.phone, u.is_active
+      SELECT s.*, u.first_name, u.last_name, u.email, u.phone, u.is_active
       FROM students s JOIN users u ON s.user_id = u.id
-      ORDER BY u.name
+      ORDER BY u.last_name, u.first_name
     `);
     res.json(rows);
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -51,7 +51,7 @@ router.get('/students', async (req, res) => {
 router.get('/students/:id', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT s.*, u.name, u.email, u.phone, u.is_active
+      SELECT s.*, u.first_name, u.last_name, u.email, u.phone, u.is_active
       FROM students s JOIN users u ON s.user_id = u.id WHERE s.id = ?
     `, [req.params.id]);
     if (!rows.length) return res.status(404).json({ error: 'Not found' });
@@ -81,19 +81,19 @@ router.get('/students/:id', async (req, res) => {
 router.post('/students', async (req, res) => {
   const conn = await pool.getConnection();
   try {
-    const { name, email, phone, password, enrollment_no, department, batch_year, cgpa, tenth_pct, twelfth_pct, backlogs, skills } = req.body;
-    if (!name || !email || !password || !enrollment_no || !department || !batch_year) {
+    const { first_name, last_name, email, phone, password, enrollment_no, department, batch_year, cgpa, tenth_pct, twelfth_pct, backlogs, skills } = req.body;
+    if (!first_name || !last_name || !email || !password || !enrollment_no || !department || !batch_year) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
     const hash = await bcrypt.hash(password, 10);
     await conn.beginTransaction();
-    const [userRes] = await conn.query('INSERT INTO users (email,password,role,name,phone) VALUES(?,?,?,?,?)', [email, hash, 'student', name, phone || null]);
+    const [userRes] = await conn.query('INSERT INTO users (email,password,role,first_name,last_name,phone) VALUES(?,?,?,?,?,?)', [email, hash, 'student', first_name, last_name, phone || null]);
     const [stuRes] = await conn.query(
       'INSERT INTO students (user_id,enrollment_no,department,batch_year,cgpa,tenth_pct,twelfth_pct,backlogs,skills) VALUES(?,?,?,?,?,?,?,?,?)',
       [userRes.insertId, enrollment_no, department, +batch_year, +(cgpa || 0), +(tenth_pct || 0), +(twelfth_pct || 0), +(backlogs || 0), skills || null]
     );
     await conn.commit();
-    res.json({ id: stuRes.insertId, name, email });
+    res.json({ id: stuRes.insertId, first_name, last_name, email });
   } catch (e) {
     await conn.rollback();
     if (e.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'Email or enrollment already exists' });
@@ -103,11 +103,11 @@ router.post('/students', async (req, res) => {
 
 router.put('/students/:id', async (req, res) => {
   try {
-    const { name, phone, department, batch_year, cgpa, tenth_pct, twelfth_pct, backlogs, skills, is_active } = req.body;
+    const { first_name, last_name, phone, department, batch_year, cgpa, tenth_pct, twelfth_pct, backlogs, skills, is_active } = req.body;
     const [stu] = await pool.query('SELECT user_id FROM students WHERE id = ?', [req.params.id]);
     if (!stu.length) return res.status(404).json({ error: 'Not found' });
 
-    await pool.query('UPDATE users SET name=?, phone=?, is_active=? WHERE id=?', [name, phone, is_active !== false, stu[0].user_id]);
+    await pool.query('UPDATE users SET first_name=?, last_name=?, phone=?, is_active=? WHERE id=?', [first_name, last_name, phone, is_active !== false, stu[0].user_id]);
     await pool.query('UPDATE students SET department=?,batch_year=?,cgpa=?,tenth_pct=?,twelfth_pct=?,backlogs=?,skills=? WHERE id=?',
       [department, +batch_year, +(cgpa || 0), +(tenth_pct || 0), +(twelfth_pct || 0), +(backlogs || 0), skills, req.params.id]);
     res.json({ success: true });
@@ -218,7 +218,7 @@ router.get('/jobs/:id/eligible', async (req, res) => {
     const job = jobs[0];
     const depts = job.eligible_departments === 'ALL' ? null : job.eligible_departments.split(',').map(d => d.trim());
 
-    let q = `SELECT s.*, u.name, u.email FROM students s JOIN users u ON s.user_id = u.id
+    let q = `SELECT s.*, u.first_name, u.last_name, u.email FROM students s JOIN users u ON s.user_id = u.id
              WHERE s.placement_status = 'unplaced' AND s.cgpa >= ? AND s.tenth_pct >= ? AND s.twelfth_pct >= ? AND s.backlogs <= ?
              AND NOT EXISTS (SELECT 1 FROM applications a WHERE a.student_id = s.id AND a.job_id = ?)`;
     const params = [job.min_cgpa, job.min_tenth, job.min_twelfth, job.max_backlogs, job.id];
@@ -236,7 +236,7 @@ router.get('/jobs/:id/eligible', async (req, res) => {
 router.get('/applications', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT a.*, u.name AS student_name, s.department, s.cgpa,
+      SELECT a.*, u.first_name, u.last_name, s.department, s.cgpa,
              j.title AS job_title, j.role, j.package_min, j.package_max,
              c.name AS company_name
       FROM applications a
@@ -279,7 +279,7 @@ router.delete('/applications/:id', async (req, res) => {
 router.get('/placements', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT p.*, u.name AS student_name, u.email AS student_email, s.department, s.cgpa,
+      SELECT p.*, u.first_name, u.last_name, u.email AS student_email, s.department, s.cgpa,
              j.title AS job_title, j.role, c.name AS company_name
       FROM placements p
       JOIN students s ON p.student_id = s.id

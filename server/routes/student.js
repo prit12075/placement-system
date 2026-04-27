@@ -151,7 +151,7 @@ router.get('/applications', async (req, res) => {
 router.get('/profile', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT s.*, u.name, u.email, u.phone
+      SELECT s.*, u.first_name, u.last_name, u.email, u.phone
       FROM students s JOIN users u ON s.user_id = u.id
       WHERE s.user_id = ?
     `, [req.user.id]);
@@ -162,11 +162,11 @@ router.get('/profile', async (req, res) => {
 
 router.put('/profile', async (req, res) => {
   try {
-    const { name, phone, skills, resume_url } = req.body;
+    const { first_name, last_name, phone, skills, resume_url } = req.body;
     const [stu] = await pool.query('SELECT * FROM students WHERE user_id = ?', [req.user.id]);
     if (!stu.length) return res.status(404).json({ error: 'Student not found' });
 
-    if (name) await pool.query('UPDATE users SET name = ?, phone = ? WHERE id = ?', [name, phone, req.user.id]);
+    if (first_name || last_name) await pool.query('UPDATE users SET first_name = COALESCE(?, first_name), last_name = COALESCE(?, last_name), phone = ? WHERE id = ?', [first_name || null, last_name || null, phone, req.user.id]);
     await pool.query('UPDATE students SET skills = ?, resume_url = ? WHERE user_id = ?', [skills, resume_url, req.user.id]);
     res.json({ success: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
